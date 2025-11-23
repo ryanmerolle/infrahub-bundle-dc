@@ -481,11 +481,18 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             task.state,
         )
 
-        # Log task logs if available
+        # Log detailed task information if merge failed
+        if hasattr(task, 'state_message') and task.state_message:
+            logging.error("Merge task state message: %s", task.state_message)
+
+        # Log task logs - show more entries if task failed
+        log_entries_to_show = 50 if task.state == "Failed" else 10
         if hasattr(task, 'logs') and task.logs:
-            logging.info("Merge task logs:")
-            for log_entry in task.logs[:10]:  # Show first 10 log entries
+            logging.info(f"Merge task logs (showing last {min(len(task.logs), log_entries_to_show)} entries):")
+            for log_entry in task.logs[-log_entries_to_show:]:
                 logging.info("  %s", log_entry)
+        elif task.state == "Failed":
+            logging.warning("Merge task failed but no logs available")
 
         # Verify the merge completed successfully
         # Check the PC state rather than just the task state, as the PC state
@@ -499,11 +506,17 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Proposed change state after merge: %s", pc_state)
 
         # The PC should be in 'merged' or 'closed' state if merge succeeded
-        assert pc_state in ['merged', 'closed'], (
-            f"Merge did not complete successfully. "
-            f"Task state: {task.state}, PC state: {pc_state}. "
-            f"Check task logs above for details."
+        error_msg = (
+            f"Merge did not complete successfully.\n"
+            f"  Task ID: {task.id}\n"
+            f"  Task state: {task.state}\n"
+            f"  PC state: {pc_state}"
         )
+        if hasattr(task, 'state_message') and task.state_message:
+            error_msg += f"\n  Error: {task.state_message}"
+        error_msg += "\n  Check task logs above for details."
+
+        assert pc_state in ['merged', 'closed'], error_msg
 
         logging.info("Proposed change merged successfully")
 
