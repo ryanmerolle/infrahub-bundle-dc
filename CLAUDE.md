@@ -2,6 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference
+
+```bash
+# First-time setup
+uv sync                              # Install dependencies
+uv run invoke start                  # Start Infrahub containers
+uv run invoke bootstrap              # Load schemas, menu, and data
+
+# Full reset and initialization
+uv run invoke init                   # destroy + start + bootstrap + demo
+
+# Demo workflows
+uv run invoke demo-dc-arista         # Create Arista DC demo (branch: add-dc3)
+uv run invoke demo-dc-cisco          # Create Cisco DC demo (branch: add-dc2)
+uv run invoke demo-dc-juniper        # Create Juniper DC demo (branch: add-dc5)
+
+# Development
+uv run pytest                        # Run tests
+uv run invoke lint                   # Run all linters (ruff, mypy)
+uv run infrahubctl transform <name> --branch <branch> device=<device>  # Test transform
+
+# Container management
+uv run invoke stop                   # Stop containers
+uv run invoke restart-containers     # Restart without data loss
+uv run invoke destroy                # Remove containers and volumes
+```
+
 ## Project Overview
 
 This is **bundle-dc**, a comprehensive demonstration of design-driven network automation using [InfraHub](https://docs.infrahub.app). The project showcases composable data center and POP topology generation, configuration management, validation checks, and infrastructure-as-code patterns.
@@ -9,7 +36,7 @@ This is **bundle-dc**, a comprehensive demonstration of design-driven network au
 ## Package Manager & Environment
 
 - **Package Manager**: `uv` (required for all dependency operations)
-- **Python Version**: 3.11 or 3.12
+- **Python Version**: 3.10, 3.11, or 3.12 (3.10+ required, <3.13)
 - **Setup**: `uv sync` to install all dependencies
 
 ## Common Commands
@@ -26,8 +53,9 @@ uv run invoke stop
 # Destroy containers (removes volumes)
 uv run invoke destroy
 
-# Restart specific component
-uv run invoke restart <component>
+# Restart specific container (or all if no component specified)
+uv run invoke restart-containers
+uv run invoke restart-containers infrahub-server-1
 ```
 
 ### Schema and Data Loading
@@ -64,7 +92,6 @@ uv run infrahubctl branch create <branch-name>
 uv run infrahubctl object load objects/dc/dc-arista-s.yml --branch <branch-name>
 
 # Create a proposed change for a branch
-uv run invoke create-pc --branch <branch-name>
 uv run python scripts/create_proposed_change.py --branch <branch-name>
 ```
 
@@ -84,7 +111,7 @@ uv run pytest tests/unit/test_cloud_security_mock.py
 uv run pytest tests/integration/
 
 # Run all quality checks (ruff, mypy, pytest)
-uv run invoke validate
+uv run invoke lint
 ```
 
 ### Code Quality
@@ -97,7 +124,7 @@ uv run ruff check . --fix
 uv run mypy .
 
 # Full validation suite
-uv run invoke validate
+uv run invoke lint
 ```
 
 ### Bootstrap and Demo Workflows
@@ -139,7 +166,7 @@ This project follows InfraHub's SDK pattern with five core component types:
 4. **Checks** (`checks/`) - Validate configurations and connectivity
    - Inherit from `InfrahubCheck`
    - Run validation logic and log errors/warnings
-   - Examples: `spine.py`, `leaf.py`, `edge.py`
+   - Examples: `spine.py`, `leaf.py`, `edge.py`, `firewall.py`, `loadbalancer.py`
 
 5. **Templates** (`templates/`) - Jinja2 templates for device configurations
    - Used by transforms to generate final configs
@@ -442,8 +469,8 @@ The project includes a Streamlit-based service catalog application:
 
 ## Project Structure Details
 
-- `checks/` - Validation checks for spine, leaf, edge, loadbalancer devices
-- `objects/bootstrap/` - Initial data (18 files including locations, platforms, roles, devices, docs)
+- `checks/` - Validation checks for spine, leaf, edge, firewall, loadbalancer devices
+- `objects/bootstrap/` - Initial data (19 files including locations, platforms, roles, devices, docs)
   - `00_groups.yml` - User groups and permissions
   - `01_locations.yml` - Geographic locations (metros, buildings)
   - `02_providers.yml` - Service providers
@@ -462,6 +489,7 @@ The project includes a Streamlit-based service catalog application:
   - `17_ip_prefix_pools.yml` - IP prefix pools
   - `18_devices.yml` - Pre-configured devices (corp-firewall, cisco-switch-01, etc.)
   - `19_docs.yml` - Documentation links
+  - `20_network_services.yml` - Network services definitions
 - `objects/dc/` - Data center demo scenario files (Arista, Cisco, Juniper, SONiC)
 - `objects/git-repo/` - Repository configuration objects
   - `github.yml` - GitHub repository configuration (default)
@@ -475,7 +503,6 @@ The project includes a Streamlit-based service catalog application:
 - `generators/schema_protocols.py` - Type protocols for schemas
 - `menus/` - InfraHub menu definitions
   - `menu-full.yml` - Complete menu with all navigation options
-  - `menu-demo-dc.yml` - Simplified menu for datacenter demos (excludes Documentation, Security Management, Routing Management, LB Management)
 - `queries/config/` - Configuration queries (leaf_config, spine_config, etc.)
 - `queries/topology/` - Topology queries
 - `queries/validation/` - Validation queries
@@ -484,15 +511,8 @@ The project includes a Streamlit-based service catalog application:
 - `scripts/` - User-facing automation scripts:
   - `bootstrap.py` - Python bootstrap script with Rich UI and progress tracking
   - `create_proposed_change.py` - Create Infrahub Proposed Changes
+  - `create_users_roles.py` - Create users and assign roles in Infrahub
   - `get_configs.py` - Extract device configs and topologies from artifacts
-  - `populate_security_relationships.py` - Populate security zone relationships
-  - `clab.sh` - Containerlab operations
-  - `demo.sh` - Demo scenario runner
-  - `generate.sh` - Generator helper script
-  - `render.sh` - Template rendering helper
-  - `repo.sh` - Repository management helper
-  - `transform.sh` - Transform execution helper
-  - `validate.sh` - Validation helper
 - `scripts/debug/` - Debug scripts (excluded from git tracking)
 - `service_catalog/` - Streamlit-based service catalog application
   - `Home.py` - Main landing page
@@ -500,16 +520,51 @@ The project includes a Streamlit-based service catalog application:
   - `utils/` - Utility functions and API client
   - `assets/` - Static assets (logos, images)
 - `templates/` - Jinja2 configuration templates
-  - `templates/configs/leafs/` - Leaf device templates (arista_eos.j2, dell_sonic.j2, etc.)
-  - `templates/configs/spines/` - Spine device templates (arista_eos.j2, dell_sonic.j2, etc.)
+  - `clab_topology.j2` - Containerlab topology template
+  - `templates/configs/leafs/` - Leaf device templates (arista_eos.j2, cisco_nxos.j2, dell_sonic.j2, juniper_junos.j2, sonic.j2)
+  - `templates/configs/spines/` - Spine device templates (arista_eos.j2, cisco_nxos.j2, dell_sonic.j2, edgecore_sonic.j2, juniper_junos.j2, sonic.j2)
+  - `templates/configs/edges/` - Edge device templates (cisco_ios.j2, cisco_nxos.j2)
+  - `templates/configs/loadbalancers/` - Load balancer templates (f5_networks_linux.j2, haproxy_technologies_linux.j2)
+  - `templates/configs/peering/` - Peering templates (arista_eos_bgp.j2, cisco_nxos_bgp.j2, cisco_nxos_ospf.j2)
+  - `templates/configs/equinix/` - Equinix POP templates (virtual_pop.j2)
+  - `templates/configs/juniper_firewall.j2` - Juniper firewall template
 - `transforms/` - Python transform implementations
-  - `transforms/common.py` - Shared utilities (get_interface_roles, get_loopbacks, HTML decoding, etc.)
-  - `transforms/leaf.py` - Leaf device configuration transform
-  - `transforms/spine.py` - Spine device configuration transform
-- `tests/conftest.py` - Pytest fixtures and configuration
-- `tests/unit/` - Unit tests
-- `tests/integration/` - Integration tests
-- `tasks.py` - Invoke task definitions (bootstrap, demo-dc-arista, etc.)
+  - `common.py` - Shared utilities (get_interface_roles, get_loopbacks, HTML decoding, etc.)
+  - `leaf.py` - Leaf device configuration transform
+  - `spine.py` - Spine device configuration transform
+  - `edge.py` - Edge device configuration transform
+  - `loadbalancer.py` - Load balancer configuration transform
+  - `juniper_firewall.py` - Juniper firewall configuration transform
+  - `equinix_pop.py` - Equinix POP configuration transform
+  - `openconfig_leaf.py` - OpenConfig leaf configuration transform
+  - `topology_cabling.py` - Topology cabling matrix transform
+- `tests/` - Test suite
+  - `conftest.py` - Root pytest fixtures and configuration
+  - `unit/` - Unit tests (test_cloud_security_mock.py)
+  - `integration/` - Integration tests (test_workflow.py)
+- `tasks.py` - Invoke task definitions
+
+## Available Invoke Tasks
+
+Run `uv run invoke --list` to see all tasks. Key tasks:
+
+| Task | Description |
+|------|-------------|
+| `bootstrap` | Run the complete bootstrap process (schemas, menu, data, repo) |
+| `start` | Start all containers (use `--rebuild` to force rebuild images) |
+| `stop` | Stop all containers |
+| `destroy` | Destroy all containers and volumes |
+| `restart-containers` | Restart Docker containers without destroying data |
+| `init` | Full initialization: destroy, start, bootstrap, and load demo DC |
+| `demo-dc-arista` | Create branch and load Arista DC demo topology |
+| `demo-dc-cisco` | Create branch and load Cisco DC demo topology |
+| `demo-dc-juniper` | Create branch and load Juniper DC demo topology |
+| `containerlab` | Generate configs and deploy containerlab topology |
+| `lint` | Run all linters (ruff, mypy, markdown, yaml) |
+| `run-tests` | Run all tests |
+| `docs` | Build documentation website |
+| `info` | Show current Infrahub configuration |
+| `list` | List all available invoke tasks |
 
 ## GraphQL Query Patterns
 
@@ -646,7 +701,6 @@ The Docusaurus documentation site supports [Mermaid diagrams](https://mermaid.js
 
 - Mermaid theme is configured in `docs/docusaurus.config.ts`
 - `@docusaurus/theme-mermaid` package is installed
-- See `docs/MERMAID_SETUP.md` for installation and troubleshooting
 
 **Usage in MDX files:**
 
@@ -750,8 +804,8 @@ vale $(find ./docs/docs -type f \( -name "*.mdx" -o -name "*.md" \) )
 
 **Reference Files:**
 
-- Documentation guidelines: `docs/docs/development/docs.mdx`
-- Vale styles: `.vale/styles/`
+- Vale styles: `.vale/styles/Infrahub/`
+- Spelling exceptions: `.vale/styles/spelling-exceptions.txt`
 - Markdown linting: `.markdownlint.yaml`
 
 ### Document Structure Patterns (Following Diataxis)
