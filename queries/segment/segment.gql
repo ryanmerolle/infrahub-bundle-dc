@@ -49,8 +49,10 @@ query segment($name: String!) {
                     name {
                       value
                     }
-                    role {
-                      value
+                    ... on DcimDevice {
+                      role {
+                        value
+                      }
                     }
                   }
                 }
