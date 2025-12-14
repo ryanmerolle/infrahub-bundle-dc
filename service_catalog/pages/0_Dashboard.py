@@ -234,12 +234,5 @@ def main() -> None:
     except Exception as e:
         display_error("Unexpected error while fetching data centers", str(e))
 
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        f"Connected to Infrahub at `{st.session_state.infrahub_url}` | "
-        f"Branch: `{st.session_state.selected_branch}`"
-    )
-
 
 main()

@@ -345,13 +345,6 @@ def main() -> None:
     st.markdown("### Legend - Device Roles")
     render_legend()
 
-    # Footer
-    st.markdown("---")
-    st.markdown(
-        f"Connected to Infrahub at `{st.session_state.infrahub_url}` | "
-        f"Branch: `{st.session_state.selected_branch}`"
-    )
-
 
 if __name__ == "__main__":
     main()
