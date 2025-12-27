@@ -2,7 +2,7 @@
 .env
 .envrc
 .kiro/
-.ty_cache
+.mypy_cache
 .python-version
 .venv/
 .vscode/

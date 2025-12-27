@@ -16,6 +16,6 @@ docs/.docusaurus/
 
 .kiro/
 .claude/
-.ty_cache/
+.mypy_cache/
 .ruff_cache/
 .venv/
