@@ -60,18 +60,18 @@ import sys
 import time
 
 import requests
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
-    BarColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
 from rich.rule import Rule
-from rich import box
 
 # ============================================================================
 # CONFIGURATION AND SETUP
@@ -126,8 +126,12 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
 
     # Create a Rich progress bar with multiple columns for visual feedback
     with Progress(
-        SpinnerColumn(spinner_name="dots12", style="bold bright_magenta"),  # Animated spinner
-        TextColumn("[progress.description]{task.description}", style="bold white"),  # Task description
+        SpinnerColumn(
+            spinner_name="dots12", style="bold bright_magenta"
+        ),  # Animated spinner
+        TextColumn(
+            "[progress.description]{task.description}", style="bold white"
+        ),  # Task description
         BarColumn(  # Progress bar showing completion percentage
             bar_width=60,
             style="magenta",  # In-progress color
@@ -150,7 +154,9 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
                 response = requests.get(f"{INFRAHUB_ADDRESS}/api/schema", timeout=2)
                 if response.status_code == 200:
                     # Success! Infrahub is ready
-                    progress.update(task, completed=max_retries)  # Complete the progress bar
+                    progress.update(
+                        task, completed=max_retries
+                    )  # Complete the progress bar
                     console.print("[bold green]✓ Infrahub is ready![/bold green]\n")
                     return True
             except requests.exceptions.RequestException:
@@ -473,7 +479,9 @@ def main(branch: str = "main") -> int:
         console.print("[dim]Using local repository: /upstream[/dim]")
     else:
         repo_file = "objects/git-repo/github.yml"
-        console.print("[dim]Using GitHub repository: https://github.com/opsmill/infrahub-bundle-dc.git[/dim]")
+        console.print(
+            "[dim]Using GitHub repository: https://github.com/opsmill/infrahub-bundle-dc.git[/dim]"
+        )
 
     # Execute repository addition command
     # capture_output=True prevents streaming to terminal (we handle output manually)
@@ -524,7 +532,9 @@ def main(branch: str = "main") -> int:
     # Event actions define automated triggers and responses in Infrahub.
     # This step is optional because it may fail if the repository hasn't
     # fully synced yet. Users can manually load event actions later if needed.
-    console.print("\n[bold bright_cyan on black][7/7][/bold bright_cyan on black] ⚡ [bold white]Loading event actions (optional)[/bold white]")
+    console.print(
+        "\n[bold bright_cyan on black][7/7][/bold bright_cyan on black] ⚡ [bold white]Loading event actions (optional)[/bold white]"
+    )
     events_loaded = run_command(
         f"uv run infrahubctl object load objects/events/ --branch {branch}",
         "Event actions loading",

@@ -59,14 +59,14 @@ def expand_interface_range(interface_name: str) -> list[str]:
         return [interface_name]
 
     bracket_content = match.group(1)[1:-1]  # Remove [ and ]
-    prefix = interface_name[:match.start()]
-    suffix = interface_name[match.end():]
+    prefix = interface_name[: match.start()]
+    suffix = interface_name[match.end() :]
 
     # Handle numeric ranges like [1-48] or [1,3,5]
     expanded = []
-    for part in bracket_content.split(','):
-        if '-' in part:
-            start, end = part.split('-')
+    for part in bracket_content.split(","):
+        if "-" in part:
+            start, end = part.split("-")
             if start.isdigit() and end.isdigit():
                 for i in range(int(start), int(end) + 1):
                     expanded.append(f"{prefix}{i}{suffix}")
@@ -221,7 +221,9 @@ class TopologyCreator:
         self.branch = branch
         self.data = data
         self.devices: list = []  # Stores all created devices for later reference
-        self.device_to_template: dict[str, str] = {}  # Maps device names to their template names
+        self.device_to_template: dict[
+            str, str
+        ] = {}  # Maps device names to their template names
 
     # ========================================================================
     # INTERNAL HELPER METHODS
@@ -300,12 +302,16 @@ class TopologyCreator:
                 self.client.store.set(
                     key=data.get("store_key"), node=obj, branch=self.branch
                 )
-                self.log.info(f"- Stored {kind} in store with key='{data.get('store_key')}' on branch='{self.branch}'")
+                self.log.info(
+                    f"- Stored {kind} in store with key='{data.get('store_key')}' on branch='{self.branch}'"
+                )
         except (GraphQLError, ValidationError) as exc:
             self.log.error(f"- Creation failed for {kind}: {exc}")
             raise
         except Exception as exc:
-            self.log.error(f"- Unexpected error creating {kind}: {type(exc).__name__}: {exc}")
+            self.log.error(
+                f"- Unexpected error creating {kind}: {type(exc).__name__}: {exc}"
+            )
             raise
 
     # ========================================================================
@@ -405,7 +411,7 @@ class TopologyCreator:
         Raises:
             ValueError: If location data is missing or malformed.
         """
-        site_name = self.data.get('name')
+        site_name = self.data.get("name")
         self.log.info(f"Create site {site_name}")
 
         # Validate data structure
@@ -414,7 +420,9 @@ class TopologyCreator:
         if not self.data["location"].get("id"):
             raise ValueError(f"Location has no ID in topology data for {site_name}")
 
-        self.log.info(f"Creating LocationBuilding '{site_name}' with parent location ID: {self.data['location']['id']}")
+        self.log.info(
+            f"Creating LocationBuilding '{site_name}' with parent location ID: {self.data['location']['id']}"
+        )
 
         await self._create(
             kind="LocationBuilding",
@@ -430,7 +438,7 @@ class TopologyCreator:
 
     async def create_location_hierarchy(self) -> None:
         """Create LocationPod and LocationRow for the datacenter."""
-        site_name = self.data.get('name')
+        site_name = self.data.get("name")
         self.log.info(f"Creating location hierarchy for {site_name}")
 
         # Get the building we just created
@@ -475,7 +483,7 @@ class TopologyCreator:
 
     async def create_racks(self) -> None:
         """Create racks based on the number of leaf devices."""
-        site_name = self.data.get('name')
+        site_name = self.data.get("name")
 
         # Count leaf devices from design elements
         num_leafs = sum(
@@ -497,14 +505,16 @@ class TopologyCreator:
         rack_data_list = []
         for i in range(1, num_leafs + 1):
             rack_name = f"{site_name}-Rack-{i}"
-            rack_data_list.append({
-                "payload": {
-                    "name": rack_name,
-                    "shortname": rack_name,
-                    "parent": row.id,
-                },
-                "store_key": rack_name,
-            })
+            rack_data_list.append(
+                {
+                    "payload": {
+                        "name": rack_name,
+                        "shortname": rack_name,
+                        "parent": row.id,
+                    },
+                    "store_key": rack_name,
+                }
+            )
 
         await self._create_in_batch(
             kind="LocationRack",
@@ -534,7 +544,7 @@ class TopologyCreator:
         - Rack 3: leaf-03 (U42), spine-02 (U40), console-02 (U39), oob-02 (U38)
         - Rack 4: leaf-04 (U42)
         """
-        site_name = self.data.get('name')
+        site_name = self.data.get("name")
         self.log.info(f"Assigning devices to racks for {site_name}")
 
         # Group devices by role for distribution
@@ -556,11 +566,15 @@ class TopologyCreator:
         # Example: In a 10-rack row, racks 4-7 would be middle racks
         middle_device_count = max(
             len(spine_devices),  # Need at least this many racks for spines
-            len(border_leaf_devices) + len(console_devices) + len(oob_devices)  # Or this many for other infrastructure
+            len(border_leaf_devices)
+            + len(console_devices)
+            + len(oob_devices),  # Or this many for other infrastructure
         )
         # Center the middle rack range in the row
         middle_start = (total_racks // 2) - (middle_device_count // 2)
-        middle_racks = list(range(middle_start + 1, middle_start + middle_device_count + 1))
+        middle_racks = list(
+            range(middle_start + 1, middle_start + middle_device_count + 1)
+        )
 
         # Track rack occupancy (rack_number -> list of (device, position, height))
         rack_occupancy: dict[int, list[tuple[Any, int, int]]] = {
@@ -605,7 +619,9 @@ class TopologyCreator:
             rack_num = device_num  # Direct mapping: leaf device number = rack number
 
             if rack_num > total_racks:
-                self.log.warning(f"Device {device.name.value} number ({device_num}) exceeds rack count ({total_racks}), skipping")
+                self.log.warning(
+                    f"Device {device.name.value} number ({device_num}) exceeds rack count ({total_racks}), skipping"
+                )
                 continue
 
             device_height = await get_device_height(device)
@@ -616,7 +632,9 @@ class TopologyCreator:
         border_leaf_rack_idx = 0
         for device in border_leaf_devices:
             if border_leaf_rack_idx >= len(middle_racks):
-                self.log.warning(f"Not enough middle racks for border leaf {device.name.value}")
+                self.log.warning(
+                    f"Not enough middle racks for border leaf {device.name.value}"
+                )
                 break
 
             rack_num = middle_racks[border_leaf_rack_idx]
@@ -636,7 +654,9 @@ class TopologyCreator:
         spine_rack_idx = 0
         for device in spine_devices:
             if spine_rack_idx >= len(middle_racks):
-                self.log.warning(f"Not enough middle racks for spine {device.name.value}")
+                self.log.warning(
+                    f"Not enough middle racks for spine {device.name.value}"
+                )
                 break
 
             rack_num = middle_racks[spine_rack_idx]
@@ -656,7 +676,9 @@ class TopologyCreator:
         console_rack_idx = 0
         for device in console_devices:
             if console_rack_idx >= len(middle_racks):
-                self.log.warning(f"Not enough middle racks for console device {device.name.value}")
+                self.log.warning(
+                    f"Not enough middle racks for console device {device.name.value}"
+                )
                 break
 
             rack_num = middle_racks[console_rack_idx]
@@ -676,7 +698,9 @@ class TopologyCreator:
         oob_rack_idx = 0
         for device in oob_devices:
             if oob_rack_idx >= len(middle_racks):
-                self.log.warning(f"Not enough middle racks for OOB device {device.name.value}")
+                self.log.warning(
+                    f"Not enough middle racks for OOB device {device.name.value}"
+                )
                 break
 
             rack_num = middle_racks[oob_rack_idx]
@@ -712,11 +736,15 @@ class TopologyCreator:
                 device.location = rack.id
                 device.position = position
                 batch.add(task=device.save, allow_upsert=True, node=device)
-                self.log.info(f"Assigned {device.name.value} to {rack_name} at position U{position} ({height}U device)")
+                self.log.info(
+                    f"Assigned {device.name.value} to {rack_name} at position U{position} ({height}U device)"
+                )
 
         # Execute the batch update
         async for node, _ in batch.execute():
-            self.log.info(f"- Updated location for [{node.get_kind()}] {node.name.value}")
+            self.log.info(
+                f"- Updated location for [{node.get_kind()}] {node.name.value}"
+            )
 
     # ========================================================================
     # IP ADDRESS AND NUMBER POOL MANAGEMENT
@@ -948,7 +976,9 @@ class TopologyCreator:
                     ],
                     "primary_address": await self.client.allocate_next_ip_address(
                         resource_pool=self.client.store.get(
-                            kind=CoreIPAddressPool, key="management_ip_pool", branch=self.branch
+                            kind=CoreIPAddressPool,
+                            key="management_ip_pool",
+                            branch=self.branch,
                         ),
                         identifier=f"{name}-management",
                         data={"description": f"{name} Management IP"},
@@ -995,7 +1025,9 @@ class TopologyCreator:
         for device in self.devices:
             template_name = self._get_device_template_name(device)
             if not template_name or template_name not in self.data["templates"]:
-                self.log.warning(f"No template found for device {device.name.value if hasattr(device, 'name') else device.id}")
+                self.log.warning(
+                    f"No template found for device {device.name.value if hasattr(device, 'name') else device.id}"
+                )
                 continue
 
             # Get expanded interfaces from template
@@ -1012,7 +1044,9 @@ class TopologyCreator:
                         "device": device.id,
                         "status": "active",
                     },
-                    "store_key": f"{device.name.value}-{iface['name']}" if hasattr(device, 'name') else None,
+                    "store_key": f"{device.name.value}-{iface['name']}"
+                    if hasattr(device, "name")
+                    else None,
                 }
 
                 # Add role if present
@@ -1035,7 +1069,9 @@ class TopologyCreator:
                     data_list=console_interface_data_list,
                     allow_upsert=True,
                 )
-                self.log.info(f"Created {len(console_interface_data_list)} console interfaces for {device.name.value if hasattr(device, 'name') else device.id}")
+                self.log.info(
+                    f"Created {len(console_interface_data_list)} console interfaces for {device.name.value if hasattr(device, 'name') else device.id}"
+                )
 
             # Create physical interfaces in batch
             if physical_interface_data_list:
@@ -1044,7 +1080,9 @@ class TopologyCreator:
                     data_list=physical_interface_data_list,
                     allow_upsert=True,
                 )
-                self.log.info(f"Created {len(physical_interface_data_list)} physical interfaces for {device.name.value if hasattr(device, 'name') else device.id}")
+                self.log.info(
+                    f"Created {len(physical_interface_data_list)} physical interfaces for {device.name.value if hasattr(device, 'name') else device.id}"
+                )
 
     def _get_device_template_name(self, device: Any) -> str | None:
         """
@@ -1058,7 +1096,9 @@ class TopologyCreator:
         """
         # First try to get from our internal mapping
         if hasattr(device, "name"):
-            device_name = device.name.value if hasattr(device.name, "value") else str(device.name)
+            device_name = (
+                device.name.value if hasattr(device.name, "value") else str(device.name)
+            )
             if device_name in self.device_to_template:
                 return self.device_to_template[device_name]
 
@@ -1149,7 +1189,8 @@ class TopologyCreator:
             }
             for source_device, source_interfaces in sources.items()
             for destination_device, destination_interfaces in destinations.items()
-            if source_interfaces and destination_interfaces  # Guard against empty lists
+            if source_interfaces
+            and destination_interfaces  # Guard against empty lists
             and int(destination_device.split("-")[-1]) % 2
             == int(source_device.split("-")[-1]) % 2
         ]
@@ -1215,15 +1256,17 @@ class TopologyCreator:
             )
         try:
             async for node, _ in batch.execute():
-                hfid_str = ' -> '.join(node.hfid) if isinstance(node.hfid, list) else str(node.hfid)
+                hfid_str = (
+                    " -> ".join(node.hfid)
+                    if isinstance(node.hfid, list)
+                    else str(node.hfid)
+                )
                 if hasattr(node, "description"):
                     self.log.info(
                         f"- Created [{node.get_kind()}] {node.description.value} from {hfid_str}"
                     )
                 else:
-                    self.log.info(
-                        f"- Created [{node.get_kind()}] from {hfid_str}"
-                    )
+                    self.log.info(f"- Created [{node.get_kind()}] from {hfid_str}")
 
         except ValidationError as exc:
             self.log.debug(f"- Creation failed due to {exc}")
@@ -1254,7 +1297,9 @@ class TopologyCreator:
                         "ip_addresses": [
                             await self.client.allocate_next_ip_address(
                                 resource_pool=self.client.store.get(
-                                    kind=CoreIPAddressPool, key=pool_key, branch=self.branch
+                                    kind=CoreIPAddressPool,
+                                    key=pool_key,
+                                    branch=self.branch,
                                 ),
                                 identifier=f"{device.name.value}-{loopback_name}",
                                 data={

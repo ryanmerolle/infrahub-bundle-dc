@@ -8,7 +8,6 @@ import time
 from typing import Any, Dict
 
 import streamlit as st  # type: ignore[import-untyped]
-
 from utils import (
     DEFAULT_BRANCH,
     INFRAHUB_ADDRESS,
@@ -46,17 +45,12 @@ def wait_for_processing(duration: int = 10) -> None:
         progress = i / duration
         percentage = int(progress * 100)
 
-        progress_bar.progress(
-            progress,
-            text=f"Processing... {percentage}% complete"
-        )
+        progress_bar.progress(progress, text=f"Processing... {percentage}% complete")
 
         remaining = duration - i
         elapsed = i
 
-        time_display.markdown(
-            f"**Time:** {elapsed}s elapsed / {remaining}s remaining"
-        )
+        time_display.markdown(f"**Time:** {elapsed}s elapsed / {remaining}s remaining")
 
         if i < duration:
             time.sleep(1)
@@ -92,7 +86,10 @@ def initialize_segment_creation_state(form_data: Dict[str, Any]) -> None:
 
 def render_progress_tracker() -> None:
     """Render the progress tracker based on current state."""
-    if "segment_creation" not in st.session_state or not st.session_state.segment_creation.get("active"):
+    if (
+        "segment_creation" not in st.session_state
+        or not st.session_state.segment_creation.get("active")
+    ):
         return
 
     state = st.session_state.segment_creation
@@ -103,7 +100,7 @@ def render_progress_tracker() -> None:
         "Creating network segment",
         "Processing",
         "Creating proposed change",
-        "Complete"
+        "Complete",
     ]
 
     progress_md = "### Progress\n\n"
@@ -203,28 +200,35 @@ def execute_segment_creation_step(client: InfrahubClient) -> None:
             Your network segment has been created in branch `{branch_name}` and a Proposed Change has been created.
 
             **Proposed Change URL:**
-            [{state['pc_url']}]({state['pc_url']})
+            [{state["pc_url"]}]({state["pc_url"]})
 
             Click the link above to review and merge your changes in Infrahub.
             """)
 
-    except (InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError, InfrahubAPIError) as e:
+    except (
+        InfrahubConnectionError,
+        InfrahubHTTPError,
+        InfrahubGraphQLError,
+        InfrahubAPIError,
+    ) as e:
         state["error"] = str(e)
         state["active"] = False
 
         if step == 1:
-            display_error("Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}")
+            display_error(
+                "Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}"
+            )
         elif step == 2:
             display_error(
                 "Failed to create network segment",
-                f"The branch '{branch_name}' was created but the segment could not be created.\n\n{str(e)}"
+                f"The branch '{branch_name}' was created but the segment could not be created.\n\n{str(e)}",
             )
         elif step == 4:
             display_error(
                 "Failed to create Proposed Change",
                 f"The segment '{customer_name}' was created successfully in branch '{branch_name}', "
                 f"but the Proposed Change could not be created.\n\n{str(e)}\n\n"
-                f"You can manually create a Proposed Change for branch '{branch_name}' in the Infrahub UI."
+                f"You can manually create a Proposed Change for branch '{branch_name}' in the Infrahub UI.",
             )
             st.warning(
                 f"Network Segment '{customer_name}' was created in branch '{branch_name}', "
@@ -261,13 +265,15 @@ def main() -> None:
             "This will create a branch, add the segment, and create a proposed change for review."
         )
     else:
-        st.info("Network segment creation in progress... Form is read-only during execution.")
+        st.info(
+            "Network segment creation in progress... Form is read-only during execution."
+        )
 
     # Initialize API client
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Fetch deployments (cache in session state)
@@ -326,7 +332,8 @@ def main() -> None:
                 for d in st.session_state.deployments
             ]
             deployment_map = {
-                d.get("display_label") or d.get("name", {}).get("value", "Unknown"): d.get("id")
+                d.get("display_label")
+                or d.get("name", {}).get("value", "Unknown"): d.get("id")
                 for d in st.session_state.deployments
             }
 
@@ -349,7 +356,8 @@ def main() -> None:
                 for o in st.session_state.organizations
             ]
             owner_map = {
-                o.get("display_label") or o.get("name", {}).get("value", "Unknown"): o.get("id")
+                o.get("display_label")
+                or o.get("name", {}).get("value", "Unknown"): o.get("id")
                 for o in st.session_state.organizations
             }
 
@@ -379,7 +387,10 @@ def main() -> None:
         with col2:
             # Environment
             environment_options = ["production", "no-production"]
-            environment_labels = {"production": "Production", "no-production": "No Production"}
+            environment_labels = {
+                "production": "Production",
+                "no-production": "No Production",
+            }
             environment = st.selectbox(
                 "Environment *",
                 options=environment_options,
@@ -393,7 +404,7 @@ def main() -> None:
             segment_type_labels = {
                 "l2_only": "L2 Only",
                 "l3_gateway": "L3 Gateway",
-                "l3_vrf": "L3 VRF"
+                "l3_vrf": "L3 VRF",
             }
             segment_type = st.selectbox(
                 "Segment Type *",
@@ -404,11 +415,15 @@ def main() -> None:
             )
 
             # Tenant Isolation
-            isolation_options = ["customer_dedicated", "shared_controlled", "public_shared"]
+            isolation_options = [
+                "customer_dedicated",
+                "shared_controlled",
+                "public_shared",
+            ]
             isolation_labels = {
                 "customer_dedicated": "Customer Dedicated",
                 "shared_controlled": "Shared Controlled",
-                "public_shared": "Public Shared"
+                "public_shared": "Public Shared",
             }
             tenant_isolation = st.selectbox(
                 "Tenant Isolation *",
@@ -454,7 +469,7 @@ def main() -> None:
             "Create VPN",
             type="primary",
             use_container_width=True,
-            disabled=segment_creation_active
+            disabled=segment_creation_active,
         )
 
         if submitted:

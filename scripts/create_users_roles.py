@@ -358,11 +358,26 @@ async def ensure_permissions_exist(client: InfrahubClient) -> None:
         # namespace: "*" = all namespaces (Dcim, Ipam, Location, etc.)
         # name: "*" = all object types (Device, Interface, IPAddress, etc.)
         # decision: 6 = allow_all, 1 = deny
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "view", "decision": 6}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "create", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "update", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "delete", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "any", "decision": 6}),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "view", "decision": 6},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "create", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "update", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "delete", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "any", "decision": 6},
+        ),
         # ====================================================================
         # Global Permissions (control system-wide capabilities)
         # ====================================================================
@@ -401,7 +416,9 @@ async def ensure_permissions_exist(client: InfrahubClient) -> None:
                 # This can occur if permission was created between our check and create attempt
                 error_msg = str(e)
                 if "uniqueness constraint" in error_msg.lower():
-                    print(f"  Permission {identifier} already exists (uniqueness constraint)")
+                    print(
+                        f"  Permission {identifier} already exists (uniqueness constraint)"
+                    )
                 else:
                     # Other errors are printed but don't halt execution
                     print(f"  Failed to create permission {identifier}: {e}")
@@ -494,7 +511,9 @@ async def create_roles(client: InfrahubClient) -> dict[str, str]:
                 permission_ids.append(perm_uuid)
             else:
                 # This shouldn't happen if ensure_permissions_exist() ran successfully
-                print(f"  Error: Permission {perm_id} not found after creation attempt!")
+                print(
+                    f"  Error: Permission {perm_id} not found after creation attempt!"
+                )
 
         # Check if role already exists in Infrahub
         query = f"""

@@ -42,11 +42,19 @@ class TopologyCabling(InfrahubTransform):
                 remote_endpoint = None
                 for endpoint in endpoints:
                     endpoint_node = endpoint.get("node", {})
-                    endpoint_device = endpoint_node.get("device", {}).get("node", {}).get("name", {}).get("value")
+                    endpoint_device = (
+                        endpoint_node.get("device", {})
+                        .get("node", {})
+                        .get("name", {})
+                        .get("value")
+                    )
                     endpoint_interface = endpoint_node.get("name", {}).get("value")
 
                     # Skip if this is the current interface
-                    if endpoint_device == source_device and endpoint_interface == source_interface:
+                    if (
+                        endpoint_device == source_device
+                        and endpoint_interface == source_interface
+                    ):
                         continue
 
                     remote_endpoint = endpoint_node
@@ -55,7 +63,12 @@ class TopologyCabling(InfrahubTransform):
                 if not remote_endpoint:
                     continue
 
-                remote_device = remote_endpoint.get("device", {}).get("node", {}).get("name", {}).get("value")
+                remote_device = (
+                    remote_endpoint.get("device", {})
+                    .get("node", {})
+                    .get("name", {})
+                    .get("value")
+                )
                 remote_interface = remote_endpoint.get("name", {}).get("value")
 
                 if not remote_device or not remote_interface:
@@ -90,7 +103,9 @@ class TopologyCabling(InfrahubTransform):
                     cable_color,
                     cable_label,
                 ]
-                escaped_row = [f'"{field}"' if "," in str(field) else str(field) for field in row]
+                escaped_row = [
+                    f'"{field}"' if "," in str(field) else str(field) for field in row
+                ]
                 csv_rows.append(",".join(escaped_row))
 
         # Join all rows with newlines to create CSV string

@@ -16,10 +16,10 @@ import sys
 from pathlib import Path
 
 from infrahub_sdk import InfrahubClient
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich import box
 
 console = Console()
 
@@ -73,7 +73,9 @@ async def get_device_configs(client: InfrahubClient) -> int:
     base_path = Path("./generated-configs/devices")
     base_path.mkdir(parents=True, exist_ok=True)
 
-    console.print("\n[cyan]→[/cyan] Fetching device configurations (topology devices only)...")
+    console.print(
+        "\n[cyan]→[/cyan] Fetching device configurations (topology devices only)..."
+    )
 
     # First, get all topology deployments to find which devices belong to them
     topologies = await client.all(kind="TopologyDataCenter")
@@ -111,7 +113,13 @@ async def get_device_configs(client: InfrahubClient) -> int:
 
             # Get role value to filter devices
             # role is an attribute, not a relationship, so no need to fetch
-            device_role = device.role.value if hasattr(device.role, 'value') else str(device.role) if device.role else None
+            device_role = (
+                device.role.value
+                if hasattr(device.role, "value")
+                else str(device.role)
+                if device.role
+                else None
+            )
 
             # Skip devices that aren't leaf or spine
             if device_role not in allowed_roles:

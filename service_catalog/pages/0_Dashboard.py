@@ -4,7 +4,6 @@ This page displays Data Centers with associated Network Segments and branch sele
 """
 
 import streamlit as st  # type: ignore[import-untyped]
-
 from utils import (
     DEFAULT_BRANCH,
     INFRAHUB_ADDRESS,
@@ -13,8 +12,7 @@ from utils import (
     InfrahubClient,
     display_error,
 )
-from utils.api import InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError
-
+from utils.api import InfrahubConnectionError, InfrahubGraphQLError, InfrahubHTTPError
 
 # Initialize session state
 if "selected_branch" not in st.session_state:
@@ -31,7 +29,7 @@ def main() -> None:
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Page title
@@ -119,11 +117,19 @@ def main() -> None:
                 dc_name = dc.get("name", {}).get("value", "Unknown")
                 dc_id = dc.get("id", "")
                 location_node = dc.get("location", {}).get("node", {})
-                location = location_node.get("display_label", "N/A") if location_node else "N/A"
+                location = (
+                    location_node.get("display_label", "N/A")
+                    if location_node
+                    else "N/A"
+                )
                 description = dc.get("description", {}).get("value", "")
                 strategy = dc.get("strategy", {}).get("value", "N/A")
                 design_node = dc.get("design", {}).get("node", {})
-                design = design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
+                design = (
+                    design_node.get("name", {}).get("value", "N/A")
+                    if design_node
+                    else "N/A"
+                )
                 dc_link = f"{INFRAHUB_UI_URL}/objects/TopologyDataCenter/{dc_id}?branch={st.session_state.selected_branch}"
 
                 # Create expander for each datacenter
@@ -150,21 +156,35 @@ def main() -> None:
                         st.markdown("**Network Segments:**")
                         segment_data = []
                         for seg in segments:
-                            segment_data.append({
-                                "Customer": seg.get("customer_name", {}).get("value", "N/A"),
-                                "Environment": seg.get("environment", {}).get("value", "N/A"),
-                                "Type": seg.get("segment_type", {}).get("value", "N/A"),
-                                "VLAN ID": seg.get("vlan_id", {}).get("value", "N/A"),
-                                "Isolation": seg.get("tenant_isolation", {}).get("value", "N/A"),
-                                "Owner": seg.get("owner", {}).get("value", "N/A"),
-                            })
+                            segment_data.append(
+                                {
+                                    "Customer": seg.get("customer_name", {}).get(
+                                        "value", "N/A"
+                                    ),
+                                    "Environment": seg.get("environment", {}).get(
+                                        "value", "N/A"
+                                    ),
+                                    "Type": seg.get("segment_type", {}).get(
+                                        "value", "N/A"
+                                    ),
+                                    "VLAN ID": seg.get("vlan_id", {}).get(
+                                        "value", "N/A"
+                                    ),
+                                    "Isolation": seg.get("tenant_isolation", {}).get(
+                                        "value", "N/A"
+                                    ),
+                                    "Owner": seg.get("owner", {}).get("value", "N/A"),
+                                }
+                            )
                         st.dataframe(
                             segment_data,
                             use_container_width=True,
                             hide_index=True,
                         )
                     else:
-                        st.caption("No network segments associated with this data center.")
+                        st.caption(
+                            "No network segments associated with this data center."
+                        )
 
             st.caption(f"Found {len(datacenters)} data center(s)")
         else:
@@ -180,7 +200,9 @@ def main() -> None:
 
                     # Check for proposed changes
                     try:
-                        pcs = client.get_proposed_changes(st.session_state.selected_branch)
+                        pcs = client.get_proposed_changes(
+                            st.session_state.selected_branch
+                        )
                         if pcs:
                             st.markdown("**Proposed Changes on this branch:**")
                             for pc in pcs:
@@ -210,14 +232,20 @@ def main() -> None:
                           }
                         }
                         """
-                        result = client.execute_graphql(device_query, branch=st.session_state.selected_branch)
+                        result = client.execute_graphql(
+                            device_query, branch=st.session_state.selected_branch
+                        )
                         device_count = result.get("DcimDevice", {}).get("count", 0)
                         st.write(f"- DcimDevice: {device_count} object(s)")
 
                         if device_count > 0:
                             devices = result.get("DcimDevice", {}).get("edges", [])
                             for device in devices[:5]:  # Show first 5
-                                dev_name = device.get("node", {}).get("name", {}).get("value", "Unknown")
+                                dev_name = (
+                                    device.get("node", {})
+                                    .get("name", {})
+                                    .get("value", "Unknown")
+                                )
                                 st.write(f"  - {dev_name}")
                     except Exception as e:
                         st.write(f"Error checking other objects: {e}")

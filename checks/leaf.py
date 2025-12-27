@@ -34,7 +34,9 @@ class CheckLeaf(InfrahubCheck):
                 if service.get("typename") == "ServiceBGP"
             ]
             if redundant_bgp and len(redundant_bgp) < 2:
-                warnings.append("BGP redundancy not configured - only 1 BGP service found")
+                warnings.append(
+                    "BGP redundancy not configured - only 1 BGP service found"
+                )
 
         # Log warnings as info messages (log_warning doesn't exist in SDK)
         for warning in warnings:

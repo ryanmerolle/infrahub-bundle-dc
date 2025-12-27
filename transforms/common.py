@@ -148,7 +148,9 @@ def get_vlans(data: list) -> list[dict[str, Any]]:
                 if vlan_id is not None and vlan_id not in vlans:
                     vlans[vlan_id] = {
                         "vlan_id": vlan_id,
-                        "name": segment.get("name") or segment.get("customer_name") or f"VLAN_{vlan_id}",
+                        "name": segment.get("name")
+                        or segment.get("customer_name")
+                        or f"VLAN_{vlan_id}",
                         "vni": vlan_id + 10000,
                         "rd": str(vlan_id),
                         "segment_type": segment.get("segment_type", "l2_only"),
@@ -211,14 +213,14 @@ def expand_interface_range(interface_name: str) -> list[str]:
         return [interface_name]
 
     bracket_content = match.group(1)[1:-1]  # Remove [ and ]
-    prefix = interface_name[:match.start()]
-    suffix = interface_name[match.end():]
+    prefix = interface_name[: match.start()]
+    suffix = interface_name[match.end() :]
 
     # Handle numeric ranges like [1-48] or [1,3,5]
     expanded = []
-    for part in bracket_content.split(','):
-        if '-' in part:
-            start, end = part.split('-')
+    for part in bracket_content.split(","):
+        if "-" in part:
+            start, end = part.split("-")
             if start.isdigit() and end.isdigit():
                 for i in range(int(start), int(end) + 1):
                     expanded.append(f"{prefix}{i}{suffix}")
@@ -259,7 +261,9 @@ def get_interfaces(data: list) -> list[dict[str, Any]]:
         else:
             expanded_interfaces.append(iface)
 
-    interface_names = [iface.get("name") for iface in expanded_interfaces if iface.get("name")]
+    interface_names = [
+        iface.get("name") for iface in expanded_interfaces if iface.get("name")
+    ]
 
     # Try to use netutils intelligent sorting, fall back to alphabetical if it fails
     try:
@@ -367,7 +371,9 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
             sorted_names = sorted(interface_names)
         name_to_interface = {iface["name"]: iface for iface in roles["all_downlink"]}
         roles["all_downlink"] = [
-            name_to_interface[name] for name in sorted_names if name in name_to_interface
+            name_to_interface[name]
+            for name in sorted_names
+            if name in name_to_interface
         ]
 
     if roles["all_physical"]:
@@ -379,7 +385,9 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
             sorted_names = sorted(interface_names)
         name_to_interface = {iface["name"]: iface for iface in roles["all_physical"]}
         roles["all_physical"] = [
-            name_to_interface[name] for name in sorted_names if name in name_to_interface
+            name_to_interface[name]
+            for name in sorted_names
+            if name in name_to_interface
         ]
 
     return dict(roles)

@@ -4,10 +4,9 @@ This page provides a visual representation of physical racks and the devices
 mounted within them, similar to NetBox's rack diagram implementation.
 """
 
-import streamlit as st  # type: ignore[import-untyped]
-
 from typing import Any, Dict, List
 
+import streamlit as st  # type: ignore[import-untyped]
 from utils import (
     DEFAULT_BRANCH,
     INFRAHUB_ADDRESS,
@@ -36,7 +35,9 @@ if "device_label_mode" not in st.session_state:
     st.session_state.device_label_mode = "Hostname"
 
 
-def render_rack_diagram(rack: Dict[str, Any], devices: List[Dict[str, Any]], label_mode: str = "Hostname") -> None:
+def render_rack_diagram(
+    rack: Dict[str, Any], devices: List[Dict[str, Any]], label_mode: str = "Hostname"
+) -> None:
     """Render a single rack diagram with devices.
 
     Generates HTML visualization of the rack and displays it using Streamlit.
@@ -52,7 +53,7 @@ def render_rack_diagram(rack: Dict[str, Any], devices: List[Dict[str, Any]], lab
         devices,
         base_url=INFRAHUB_UI_URL,
         branch=st.session_state.selected_branch,
-        label_mode=label_mode
+        label_mode=label_mode,
     )
 
     # Display using st.markdown with unsafe_allow_html
@@ -74,7 +75,9 @@ def render_rack_diagram(rack: Dict[str, Any], devices: List[Dict[str, Any]], lab
         st.caption("Empty rack")
 
 
-def render_rack_grid(client: InfrahubClient, row_id: str, branch: str, label_mode: str = "Hostname") -> None:
+def render_rack_grid(
+    client: InfrahubClient, row_id: str, branch: str, label_mode: str = "Hostname"
+) -> None:
     """Render grid of rack diagrams for the selected row.
 
     Fetches all racks for the row and displays them in a responsive grid layout.
@@ -119,9 +122,7 @@ def render_rack_grid(client: InfrahubClient, row_id: str, branch: str, label_mod
                     devices = rack_devices.get(rack["id"], [])
                     render_rack_diagram(rack, devices, label_mode)
                 except Exception as e:
-                    st.error(
-                        f"Failed to render rack {rack['name']['value']}: {str(e)}"
-                    )
+                    st.error(f"Failed to render rack {rack['name']['value']}: {str(e)}")
 
     except InfrahubConnectionError as e:
         display_error("Unable to connect to Infrahub", str(e))
@@ -159,7 +160,11 @@ def render_row_selector(client: InfrahubClient, branch: str) -> str:
         with st.spinner("Loading location rows..."):
             try:
                 st.session_state[cache_key] = client.get_location_rows(branch)
-            except (InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError) as e:
+            except (
+                InfrahubConnectionError,
+                InfrahubHTTPError,
+                InfrahubGraphQLError,
+            ) as e:
                 display_error("Failed to load location rows", str(e))
                 return ""
             except Exception as e:
@@ -178,8 +183,7 @@ def render_row_selector(client: InfrahubClient, branch: str) -> str:
     # Prepare row options
     row_names = [row.get("name", {}).get("value", "Unknown") for row in rows]
     row_map = {
-        row.get("name", {}).get("value", "Unknown"): row.get("id")
-        for row in rows
+        row.get("name", {}).get("value", "Unknown"): row.get("id") for row in rows
     }
 
     # Display row selector
@@ -236,7 +240,7 @@ def main() -> None:
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Page title
@@ -284,7 +288,9 @@ def main() -> None:
                 st.session_state.selected_branch = selected_branch
                 # Clear cached row data when branch changes
                 keys_to_clear = [
-                    key for key in st.session_state.keys() if key.startswith("location_rows_")
+                    key
+                    for key in st.session_state.keys()
+                    if key.startswith("location_rows_")
                 ]
                 for key in keys_to_clear:
                     del st.session_state[key]
@@ -328,9 +334,7 @@ def main() -> None:
 
     # Row selector
     st.markdown("---")
-    selected_row_id = render_row_selector(
-        client, st.session_state.selected_branch
-    )
+    selected_row_id = render_row_selector(client, st.session_state.selected_branch)
 
     if not selected_row_id:
         st.info("👆 Select a location row above to view racks.")
@@ -338,7 +342,12 @@ def main() -> None:
 
     # Render rack grid
     st.markdown("---")
-    render_rack_grid(client, selected_row_id, st.session_state.selected_branch, st.session_state.device_label_mode)
+    render_rack_grid(
+        client,
+        selected_row_id,
+        st.session_state.selected_branch,
+        st.session_state.device_label_mode,
+    )
 
     # Render legend
     st.markdown("---")

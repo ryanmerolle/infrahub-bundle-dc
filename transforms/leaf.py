@@ -73,8 +73,12 @@ class Leaf(InfrahubTransform):
             "bgp_profiles": bgp_profiles,  # Original list for Cisco/Juniper templates
             "ospf": ospf_single,  # Single dict for Arista templates
             "ospf_configs": ospf_configs,  # List for Cisco/Juniper templates (iteration)
-            "interfaces": get_interface_roles(data.get("interfaces")),  # Dict by role for Arista
-            "interface_list": get_interfaces(data.get("interfaces")),  # Flat list for Cisco/Juniper
+            "interfaces": get_interface_roles(
+                data.get("interfaces")
+            ),  # Dict by role for Arista
+            "interface_list": get_interfaces(
+                data.get("interfaces")
+            ),  # Flat list for Cisco/Juniper
             "vlans": get_vlans(data.get("interfaces")),
             "loopbacks": get_loopbacks(data.get("interfaces")),
         }

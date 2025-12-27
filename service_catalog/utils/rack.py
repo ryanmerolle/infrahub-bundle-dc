@@ -47,8 +47,7 @@ def create_rack_unit_map(
 
     # Sort devices by position to handle overlaps consistently
     sorted_devices = sorted(
-        devices,
-        key=lambda d: d.get("position", {}).get("value", 0) or 0
+        devices, key=lambda d: d.get("position", {}).get("value", 0) or 0
     )
 
     for device in sorted_devices:
@@ -105,8 +104,13 @@ def create_rack_unit_map(
     return rack_units
 
 
-
-def generate_rack_html(rack: Dict[str, Any], devices: List[Dict[str, Any]], base_url: str = "http://localhost:8000", branch: str = "main", label_mode: str = "Hostname") -> str:
+def generate_rack_html(
+    rack: Dict[str, Any],
+    devices: List[Dict[str, Any]],
+    base_url: str = "http://localhost:8000",
+    branch: str = "main",
+    label_mode: str = "Hostname",
+) -> str:
     """Generate HTML for rack diagram visualization.
 
     Creates a NetBox-style rack diagram with numbered units and positioned devices.
@@ -134,7 +138,9 @@ def generate_rack_html(rack: Dict[str, Any], devices: List[Dict[str, Any]], base
     css = _generate_rack_css()
 
     # Generate rack units HTML
-    units_html = generate_rack_units_html(rack_units, rack_height, base_url, branch, label_mode)
+    units_html = generate_rack_units_html(
+        rack_units, rack_height, base_url, branch, label_mode
+    )
 
     # Combine into complete HTML
     html = f"""<style>
@@ -151,7 +157,11 @@ def generate_rack_html(rack: Dict[str, Any], devices: List[Dict[str, Any]], base
 
 
 def generate_rack_units_html(
-    rack_units: Dict[int, Optional[Dict[str, Any]]], rack_height: int, base_url: str, branch: str, label_mode: str = "Hostname"
+    rack_units: Dict[int, Optional[Dict[str, Any]]],
+    rack_height: int,
+    base_url: str,
+    branch: str,
+    label_mode: str = "Hostname",
 ) -> str:
     """Generate HTML for all rack units.
 
@@ -183,7 +193,11 @@ def generate_rack_units_html(
 
             if position == "start" or position == "single":
                 # Start of device or single-unit device - render full device
-                units_html_parts.append(_generate_device_html(unit_info, unit_num, base_url, branch, label_mode))
+                units_html_parts.append(
+                    _generate_device_html(
+                        unit_info, unit_num, base_url, branch, label_mode
+                    )
+                )
             # For "middle" and "end" positions, don't render anything
             # (the device span is handled in the start unit)
 
@@ -204,7 +218,13 @@ def _generate_empty_unit_html(unit_num: int) -> str:
 </div>"""
 
 
-def _generate_device_html(unit_info: Dict[str, Any], unit_num: int, base_url: str, branch: str, label_mode: str = "Hostname") -> str:
+def _generate_device_html(
+    unit_info: Dict[str, Any],
+    unit_num: int,
+    base_url: str,
+    branch: str,
+    label_mode: str = "Hostname",
+) -> str:
     """Generate HTML for a device in the rack.
 
     Args:
@@ -238,7 +258,11 @@ def _generate_device_html(unit_info: Dict[str, Any], unit_num: int, base_url: st
     height_px = span * 20
 
     # Generate Infrahub URL for the device
-    device_url = f"{base_url}/objects/DcimDevice/{device_id}?branch={branch}" if device_id else "#"
+    device_url = (
+        f"{base_url}/objects/DcimDevice/{device_id}?branch={branch}"
+        if device_id
+        else "#"
+    )
 
     # For 1U devices, only show main text. For 2U+, show main text and secondary info
     if span == 1:
@@ -251,8 +275,14 @@ def _generate_device_html(unit_info: Dict[str, Any], unit_num: int, base_url: st
             device_content = f'<div class="device-name">{display_text}</div><div class="device-type-label">{secondary_text}</div>'
         else:
             # If showing hostname, show device type as secondary info (if available)
-            device_type_html = f'<div class="device-type-label">{truncate_device_name(device_type, 18)}</div>' if device_type else ''
-            device_content = f'<div class="device-name">{display_text}</div>{device_type_html}'
+            device_type_html = (
+                f'<div class="device-type-label">{truncate_device_name(device_type, 18)}</div>'
+                if device_type
+                else ""
+            )
+            device_content = (
+                f'<div class="device-name">{display_text}</div>{device_type_html}'
+            )
 
     # Generate device HTML with clickable link
     device_html = f"""<div class="rack-unit rack-unit-device" style="height: {height_px}px;">

@@ -4,18 +4,19 @@ import os
 import sys
 import time
 from pathlib import Path
-from invoke import task, Context  # type: ignore[import-not-found]
+
+from invoke import Context, task  # type: ignore[import-not-found]
+from rich import box  # type: ignore[import-not-found]
 from rich.console import Console  # type: ignore[import-not-found]
 from rich.panel import Panel  # type: ignore[import-not-found]
-from rich.table import Table  # type: ignore[import-not-found]
 from rich.progress import (  # type: ignore[import-not-found]
+    BarColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
-    BarColumn,
     TimeElapsedColumn,
 )
-from rich import box  # type: ignore[import-not-found]
+from rich.table import Table  # type: ignore[import-not-found]
 
 console = Console()
 
@@ -39,7 +40,9 @@ def get_compose_command() -> str:
     if local_compose_file.exists():
         # Use local docker-compose.yml file
         if override_file.exists():
-            return f"docker compose -p infrahub -f {local_compose_file} -f {override_file}"
+            return (
+                f"docker compose -p infrahub -f {local_compose_file} -f {override_file}"
+            )
         return f"docker compose -p infrahub-bundle-dc -f {local_compose_file}"
 
     # Fall back to downloading from infrahub.opsmill.io
@@ -149,6 +152,7 @@ def start(context: Context, rebuild: bool = False) -> None:
     # Get infrahub-sdk version
     try:
         import importlib.metadata
+
         sdk_version = importlib.metadata.version("infrahub-sdk")
     except Exception:
         sdk_version = "unknown"
@@ -415,9 +419,7 @@ def demo_vpn_opsmill(context: Context, branch: str = "add-vpn-opsmill") -> None:
     )
 
     # Wait for generator to finish creating the data
-    console.print(
-        "\n[yellow]→[/yellow] Waiting for segment generator to complete..."
-    )
+    console.print("\n[yellow]→[/yellow] Waiting for segment generator to complete...")
     wait_seconds = 30  # Segment processing is faster than DC topology
 
     with Progress(

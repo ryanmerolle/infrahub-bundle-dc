@@ -390,7 +390,13 @@ class DcimPhysicalInterface(DcimInterface, DcimEndpoint, DcimSubInterface):
     ip_addresses: RelationshipManager
 
 
-class InterfacePhysical(DcimInterface, InterfaceLayer2, InterfaceLayer3, DcimEndpoint, InterfaceHasSubInterface):
+class InterfacePhysical(
+    DcimInterface,
+    InterfaceLayer2,
+    InterfaceLayer3,
+    DcimEndpoint,
+    InterfaceHasSubInterface,
+):
     pass
 
 

@@ -130,7 +130,9 @@ class NetworkSegmentGenerator(InfrahubGenerator):
             leaf_devices: List of leaf device data from deployment
         """
         if not segment_id:
-            self.logger.warning("Segment ID not available, skipping interface association")
+            self.logger.warning(
+                "Segment ID not available, skipping interface association"
+            )
             return
 
         # Get the segment object
@@ -221,6 +223,4 @@ class NetworkSegmentGenerator(InfrahubGenerator):
                     f"    External routing: Advertising VNI {vni} to external peers"
                 )
 
-        self.logger.info(
-            f"VxLAN configuration complete for segment {segment_name}"
-        )
+        self.logger.info(f"VxLAN configuration complete for segment {segment_name}")

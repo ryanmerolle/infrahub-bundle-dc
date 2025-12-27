@@ -90,11 +90,11 @@ import asyncio
 import sys
 
 from infrahub_sdk import InfrahubClient
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
-from rich import box
 
 # ============================================================================
 # CONFIGURATION AND SETUP
@@ -264,7 +264,9 @@ async def create_proposed_change(branch: str) -> int:
                         "value": f"Automated proposed change created for branch {branch}"
                     },
                     "source_branch": {"value": branch},  # Branch with changes
-                    "destination_branch": {"value": "main"},  # Target branch (usually main)
+                    "destination_branch": {
+                        "value": "main"
+                    },  # Target branch (usually main)
                 },
             )
 

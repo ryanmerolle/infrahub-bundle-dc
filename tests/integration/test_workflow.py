@@ -364,9 +364,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             f"  The dc-arista-s.yml may have failed to load in test_07."
         )
         assert dc.name.value == "dc-arista", (
-            f"Unexpected topology name.\n"
-            f"  Expected: dc-arista\n"
-            f"  Got: {dc.name.value}"
+            f"Unexpected topology name.\n  Expected: dc-arista\n  Got: {dc.name.value}"
         )
 
         workflow_state["dc_id"] = dc.id
@@ -554,7 +552,9 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
         response = client_main.execute_graphql(query=mutation.render())
         task_id = response["DiffUpdate"]["task"]["id"]
-        task = client_main.task.wait_for_completion(id=task_id, timeout=DIFF_TASK_TIMEOUT)
+        task = client_main.task.wait_for_completion(
+            id=task_id, timeout=DIFF_TASK_TIMEOUT
+        )
 
         assert task.state == TaskState.COMPLETED, (
             f"Diff creation did not complete successfully.\n"
@@ -669,7 +669,9 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             logging.info("  - %s: %s", name, conclusion)
 
     @pytest.mark.order(13)
-    @pytest.mark.dependency(name="merge_proposed_change", depends=["create_proposed_change"])
+    @pytest.mark.dependency(
+        name="merge_proposed_change", depends=["create_proposed_change"]
+    )
     def test_13_merge_proposed_change(
         self,
         client_main: InfrahubClientSync,
@@ -689,9 +691,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
                 name__value=f"Add Arista DC - Test {default_branch}",
             )
 
-        pc_state_before = (
-            pc.state.value if hasattr(pc.state, "value") else pc.state
-        )
+        pc_state_before = pc.state.value if hasattr(pc.state, "value") else pc.state
         logging.info("Proposed change state before merge: %s", pc_state_before)
 
         # Merge the proposed change
@@ -766,7 +766,9 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Proposed change merged successfully")
 
     @pytest.mark.order(14)
-    @pytest.mark.dependency(name="verify_merge_to_main", depends=["merge_proposed_change"])
+    @pytest.mark.dependency(
+        name="verify_merge_to_main", depends=["merge_proposed_change"]
+    )
     @pytest.mark.asyncio
     async def test_14_verify_merge_to_main(
         self, async_client_main: InfrahubClient, default_branch: str
