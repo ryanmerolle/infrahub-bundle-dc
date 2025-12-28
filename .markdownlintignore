@@ -1,21 +1,13 @@
-# Dependency directories
+# Files to ignore
 
-node_modules/
-docs/node_modules/
-
-# Build output
-
-docs/build/
-docs/.docusaurus/
-
-# Version control
-
-.git/
-
-# Other
-
-.kiro/
 .claude/
+.git/
+.kiro/
 .mypy_cache/
 .ruff_cache/
 .venv/
+docs/.docusaurus/
+docs/build/
+docs/node_modules/
+docs/README.md
+node_modules/

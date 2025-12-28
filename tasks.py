@@ -621,7 +621,7 @@ def run_tests(context: Context) -> None:
 def lint_markdown(context: Context) -> None:
     """Run Linter to check all Markdown files."""
     print(" - Check code with markdownlint")
-    exec_cmd = "markdownlint ."
+    exec_cmd = 'markdownlint "**/*.{md,mdx}"'
     with context.cd(MAIN_DIRECTORY_PATH):
         context.run(exec_cmd)
 
