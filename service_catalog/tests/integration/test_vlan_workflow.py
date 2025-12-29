@@ -54,18 +54,14 @@ class TestVLANWorkflowIntegration:
         assert result["success"] is True
 
         # Step 3: Create proposed change
-        pc = client.create_proposed_change(
-            "test-branch", "Test Change", "Test Description"
-        )
+        pc = client.create_proposed_change("test-branch", "Test Change", "Test Description")
         assert pc["id"] == "pc-1"
 
     @patch("utils.api.InfrahubClientSync")
     def test_workflow_branch_creation_failure(self, mock_sdk: Mock) -> None:
         """Test workflow failure at branch creation step."""
         mock_client_instance = Mock()
-        mock_client_instance.branch.create.side_effect = Exception(
-            "Branch creation failed"
-        )
+        mock_client_instance.branch.create.side_effect = Exception("Branch creation failed")
         mock_sdk.return_value = mock_client_instance
 
         client = InfrahubClient("http://localhost:8000")
@@ -88,9 +84,7 @@ class TestVLANWorkflowIntegration:
         mock_client_instance.branch.create.return_value = mock_branch
 
         # VLAN assignment fails
-        mock_client_instance.execute_graphql.return_value = {
-            "InfrahubInterfaceUpdate": {"ok": False}
-        }
+        mock_client_instance.execute_graphql.return_value = {"InfrahubInterfaceUpdate": {"ok": False}}
 
         mock_sdk.return_value = mock_client_instance
 
@@ -143,9 +137,7 @@ class TestVLANWorkflowIntegration:
 
         # Proposed change creation fails
         with pytest.raises(InfrahubAPIError) as exc_info:
-            client.create_proposed_change(
-                "test-branch", "Test Change", "Test Description"
-            )
+            client.create_proposed_change("test-branch", "Test Change", "Test Description")
 
         assert "Failed to create proposed change" in str(exc_info.value)
 
@@ -194,9 +186,7 @@ class TestDataValidation:
         """Test handling of interface with no VLANs."""
         mock_client_instance = Mock()
         mock_client_instance.execute_graphql.return_value = {
-            "InfrahubInterface": {
-                "edges": [{"node": {"id": "iface-1", "vlans": {"edges": []}}}]
-            }
+            "InfrahubInterface": {"edges": [{"node": {"id": "iface-1", "vlans": {"edges": []}}}]}
         }
         mock_sdk.return_value = mock_client_instance
 
@@ -209,9 +199,7 @@ class TestDataValidation:
     def test_device_with_no_customer_interfaces(self, mock_sdk: Mock) -> None:
         """Test handling of device with no customer interfaces."""
         mock_client_instance = Mock()
-        mock_client_instance.execute_graphql.return_value = {
-            "InfrahubInterface": {"edges": []}
-        }
+        mock_client_instance.execute_graphql.return_value = {"InfrahubInterface": {"edges": []}}
         mock_sdk.return_value = mock_client_instance
 
         client = InfrahubClient("http://localhost:8000")
@@ -223,9 +211,7 @@ class TestDataValidation:
     def test_location_with_no_devices(self, mock_sdk: Mock) -> None:
         """Test handling of location with no devices."""
         mock_client_instance = Mock()
-        mock_client_instance.execute_graphql.return_value = {
-            "DcimDevice": {"edges": []}
-        }
+        mock_client_instance.execute_graphql.return_value = {"DcimDevice": {"edges": []}}
         mock_sdk.return_value = mock_client_instance
 
         client = InfrahubClient("http://localhost:8000")

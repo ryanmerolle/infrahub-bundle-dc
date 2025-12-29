@@ -115,9 +115,7 @@ def format_datacenter_table(
             Description, Strategy, Design, Link.
     """
     if not datacenters:
-        return pd.DataFrame(
-            columns=["Name", "Location", "Description", "Strategy", "Design", "Link"]
-        )
+        return pd.DataFrame(columns=["Name", "Location", "Description", "Strategy", "Design", "Link"])
 
     formatted_data = []
     for dc in datacenters:
@@ -134,16 +132,10 @@ def format_datacenter_table(
 
         # Design is also a relationship (node)
         design_node = dc.get("design", {}).get("node", {})
-        design = (
-            design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
-        )
+        design = design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
 
         # Construct Infrahub UI link
-        link = (
-            f"{base_url}/objects/TopologyDataCenter/{dc_id}?branch={branch}"
-            if dc_id
-            else "N/A"
-        )
+        link = f"{base_url}/objects/TopologyDataCenter/{dc_id}?branch={branch}" if dc_id else "N/A"
 
         formatted_data.append(
             {

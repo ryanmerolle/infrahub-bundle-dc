@@ -82,15 +82,11 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
     buildings = st.session_state[cache_key]
 
     if not buildings:
-        st.warning(
-            "No buildings found. Please create LocationBuilding objects in Infrahub."
-        )
+        st.warning("No buildings found. Please create LocationBuilding objects in Infrahub.")
         return selections
 
     building_names = [b.get("name", {}).get("value", "Unknown") for b in buildings]
-    building_map = {
-        b.get("name", {}).get("value", "Unknown"): b.get("id") for b in buildings
-    }
+    building_map = {b.get("name", {}).get("value", "Unknown"): b.get("id") for b in buildings}
 
     selected_building_name = st.selectbox(
         "Building",
@@ -143,12 +139,8 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
                     display_error("Failed to load racks", str(e))
                     return selections
 
-            rack_options = ["All Racks"] + [
-                r.get("name", {}).get("value", "Unknown") for r in racks
-            ]
-            rack_map = {
-                r.get("name", {}).get("value", "Unknown"): r.get("id") for r in racks
-            }
+            rack_options = ["All Racks"] + [r.get("name", {}).get("value", "Unknown") for r in racks]
+            rack_map = {r.get("name", {}).get("value", "Unknown"): r.get("id") for r in racks}
 
             selected_rack_option = st.selectbox(
                 "Rack (Optional)",
@@ -163,9 +155,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
             # Device selector
             with st.spinner("Loading devices..."):
                 try:
-                    devices = client.get_devices_by_location(
-                        pod_id, selections["rack_id"], "main"
-                    )
+                    devices = client.get_devices_by_location(pod_id, selections["rack_id"], "main")
                 except (InfrahubAPIError, InfrahubConnectionError) as e:
                     display_error("Failed to load devices", str(e))
                     return selections
@@ -175,9 +165,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
                 return selections
 
             device_names = [d.get("name", {}).get("value", "Unknown") for d in devices]
-            device_map = {
-                d.get("name", {}).get("value", "Unknown"): d.get("id") for d in devices
-            }
+            device_map = {d.get("name", {}).get("value", "Unknown"): d.get("id") for d in devices}
 
             selected_device_name = st.selectbox(
                 "Device",
@@ -192,9 +180,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
     return selections
 
 
-def render_interface_selector(
-    client: InfrahubClient, device_id: str, device_name: str
-) -> Optional[Dict[str, Any]]:
+def render_interface_selector(client: InfrahubClient, device_id: str, device_name: str) -> Optional[Dict[str, Any]]:
     """Render interface dropdown filtered to customer interfaces.
 
     Args:
@@ -214,9 +200,7 @@ def render_interface_selector(
 
     with st.spinner("Loading interfaces..."):
         try:
-            interfaces = client.get_interfaces_by_device(
-                device_id, role_filter="Customer", branch="main"
-            )
+            interfaces = client.get_interfaces_by_device(device_id, role_filter="Customer", branch="main")
         except (InfrahubAPIError, InfrahubConnectionError) as e:
             display_error("Failed to load interfaces", str(e))
             return None
@@ -313,9 +297,7 @@ def render_vlan_selector(client: InfrahubClient) -> Optional[Dict[str, Any]]:
     vlans = st.session_state[cache_key]
 
     if not vlans:
-        st.warning(
-            "No VLANs found. Please create InterfaceVirtual objects in Infrahub."
-        )
+        st.warning("No VLANs found. Please create InterfaceVirtual objects in Infrahub.")
         return None
 
     # Format VLAN options as "VLAN ID - Name"
@@ -405,17 +387,13 @@ def execute_vlan_change_workflow(
 
             display_success("Proposed change created successfully!")
             st.markdown(f"### [🔗 View Proposed Change]({pc_url})")
-            st.caption(
-                "Click the link above to review and merge the changes in Infrahub."
-            )
+            st.caption("Click the link above to review and merge the changes in Infrahub.")
 
     except InfrahubAPIError as e:
         error_msg = str(e).lower()
         if "branch" in error_msg and "create" in error_msg:
             display_error("Branch creation failed", str(e))
-        elif (
-            "assign" in error_msg or "mutation" in error_msg or "interface" in error_msg
-        ):
+        elif "assign" in error_msg or "mutation" in error_msg or "interface" in error_msg:
             display_error(
                 "VLAN assignment failed",
                 f"{str(e)}\n\nBranch '{branch_name}' was created but assignment failed. "
@@ -551,15 +529,11 @@ def main() -> None:
     # Display main branch indicator
     st.sidebar.markdown("---")
     st.sidebar.info("**Branch:** main (read-only)")
-    st.sidebar.caption(
-        "All data is queried from the main branch. Changes will be applied to a new branch."
-    )
+    st.sidebar.caption("All data is queried from the main branch. Changes will be applied to a new branch.")
 
     # Footer
     st.markdown("---")
-    st.markdown(
-        f"Connected to Infrahub at `{st.session_state.infrahub_url}` | Branch: `main`"
-    )
+    st.markdown(f"Connected to Infrahub at `{st.session_state.infrahub_url}` | Branch: `main`")
 
 
 if __name__ == "__main__":

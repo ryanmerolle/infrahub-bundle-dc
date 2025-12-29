@@ -47,20 +47,14 @@ async def get_containerlab_topologies(client: InfrahubClient) -> list[str]:
 
             if has_clab_artifact:
                 # Fetch artifact content
-                artifact_content = await topology.artifact_fetch(
-                    "containerlab-topology"
-                )
+                artifact_content = await topology.artifact_fetch("containerlab-topology")
                 output_file = directory_path / f"{topology.name.value}.clab.yml"
                 with open(output_file, "w") as file:
                     file.write(str(artifact_content))
-                console.print(
-                    f"  [green]✓[/green] Saved topology: [bold]{output_file}[/bold]"
-                )
+                console.print(f"  [green]✓[/green] Saved topology: [bold]{output_file}[/bold]")
                 saved_topologies.append(topology.name.value)
         except Exception as e:
-            console.print(
-                f"  [red]✗[/red] Error fetching topology {topology.name.value}: [dim]{e}[/dim]"
-            )
+            console.print(f"  [red]✗[/red] Error fetching topology {topology.name.value}: [dim]{e}[/dim]")
 
     if len(saved_topologies) == 0:
         console.print("  [yellow]No containerlab topologies found[/yellow]")
@@ -73,9 +67,7 @@ async def get_device_configs(client: InfrahubClient) -> int:
     base_path = Path("./generated-configs/devices")
     base_path.mkdir(parents=True, exist_ok=True)
 
-    console.print(
-        "\n[cyan]→[/cyan] Fetching device configurations (topology devices only)..."
-    )
+    console.print("\n[cyan]→[/cyan] Fetching device configurations (topology devices only)...")
 
     # First, get all topology deployments to find which devices belong to them
     topologies = await client.all(kind="TopologyDataCenter")
@@ -114,11 +106,7 @@ async def get_device_configs(client: InfrahubClient) -> int:
             # Get role value to filter devices
             # role is an attribute, not a relationship, so no need to fetch
             device_role = (
-                device.role.value
-                if hasattr(device.role, "value")
-                else str(device.role)
-                if device.role
-                else None
+                device.role.value if hasattr(device.role, "value") else str(device.role) if device.role else None
             )
 
             # Skip devices that aren't leaf or spine
@@ -147,15 +135,11 @@ async def get_device_configs(client: InfrahubClient) -> int:
                     with open(output_file, "w") as file:
                         file.write(str(artifact_content))
 
-                    console.print(
-                        f"  [green]✓[/green] Saved [bold]{device.name.value}.{extension}[/bold]"
-                    )
+                    console.print(f"  [green]✓[/green] Saved [bold]{device.name.value}.{extension}[/bold]")
                     config_count += 1
 
         except Exception as e:
-            console.print(
-                f"  [red]✗[/red] Error fetching config for {device.name.value}: [dim]{e}[/dim]"
-            )
+            console.print(f"  [red]✗[/red] Error fetching config for {device.name.value}: [dim]{e}[/dim]")
 
     if config_count == 0:
         console.print("  [yellow]No device configurations found[/yellow]")
@@ -190,14 +174,10 @@ async def get_topology_cabling(client: InfrahubClient) -> int:
                 output_file = directory_path / f"{topology.name.value}-cabling.txt"
                 with open(output_file, "w") as file:
                     file.write(str(artifact_content))
-                console.print(
-                    f"  [green]✓[/green] Saved cabling matrix: [bold]{output_file}[/bold]"
-                )
+                console.print(f"  [green]✓[/green] Saved cabling matrix: [bold]{output_file}[/bold]")
                 cabling_count += 1
         except Exception as e:
-            console.print(
-                f"  [red]✗[/red] Error fetching cabling for {topology.name.value}: [dim]{e}[/dim]"
-            )
+            console.print(f"  [red]✗[/red] Error fetching cabling for {topology.name.value}: [dim]{e}[/dim]")
 
     if cabling_count == 0:
         console.print("  [yellow]No cabling matrices found[/yellow]")
@@ -213,8 +193,7 @@ async def main(branch: str | None = None) -> int:
     console.print()
     console.print(
         Panel(
-            f"[bold cyan]Extracting Infrahub Configuration Artifacts[/bold cyan]\n"
-            f"[dim]Branch:[/dim] {branch_name}",
+            f"[bold cyan]Extracting Infrahub Configuration Artifacts[/bold cyan]\n[dim]Branch:[/dim] {branch_name}",
             border_style="cyan",
             box=box.SIMPLE,
         )
@@ -289,12 +268,8 @@ async def main(branch: str | None = None) -> int:
             deploy_cmd = f"sudo -E containerlab deploy -t generated-configs/clab/{topology_name}.clab.yml"
             destroy_cmd = f"sudo -E containerlab destroy -t generated-configs/clab/{topology_name}.clab.yml"
 
-            deploy_table.add_row(
-                f"Deploy {topology_name}", f"[green]{deploy_cmd}[/green]"
-            )
-            deploy_table.add_row(
-                f"Destroy {topology_name}", f"[red]{destroy_cmd}[/red]"
-            )
+            deploy_table.add_row(f"Deploy {topology_name}", f"[green]{deploy_cmd}[/green]")
+            deploy_table.add_row(f"Destroy {topology_name}", f"[red]{destroy_cmd}[/red]")
 
         console.print(deploy_table)
         console.print()
@@ -303,9 +278,7 @@ async def main(branch: str | None = None) -> int:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Extract device configurations from Infrahub"
-    )
+    parser = argparse.ArgumentParser(description="Extract device configurations from Infrahub")
     parser.add_argument(
         "--branch",
         "-b",

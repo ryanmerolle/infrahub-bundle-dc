@@ -56,9 +56,7 @@ class TestLocationMethods:
         """Test successful retrieval of pods by building."""
         mock_client_instance = Mock()
         mock_client_instance.execute_graphql.return_value = {
-            "LocationPod": {
-                "edges": [{"node": {"id": "pod-1", "name": {"value": "Pod 1"}}}]
-            }
+            "LocationPod": {"edges": [{"node": {"id": "pod-1", "name": {"value": "Pod 1"}}}]}
         }
         mock_sdk.return_value = mock_client_instance
 
@@ -74,9 +72,7 @@ class TestLocationMethods:
         """Test successful retrieval of racks by pod."""
         mock_client_instance = Mock()
         mock_client_instance.execute_graphql.return_value = {
-            "LocationRack": {
-                "edges": [{"node": {"id": "rack-1", "name": {"value": "Rack A1"}}}]
-            }
+            "LocationRack": {"edges": [{"node": {"id": "rack-1", "name": {"value": "Rack A1"}}}]}
         }
         mock_sdk.return_value = mock_client_instance
 
@@ -92,11 +88,7 @@ class TestLocationMethods:
         """Test retrieval of devices filtered by specific rack."""
         mock_client_instance = Mock()
         mock_client_instance.execute_graphql.return_value = {
-            "DcimDevice": {
-                "edges": [
-                    {"node": {"id": "device-1", "name": {"value": "leaf-switch-01"}}}
-                ]
-            }
+            "DcimDevice": {"edges": [{"node": {"id": "device-1", "name": {"value": "leaf-switch-01"}}}]}
         }
         mock_sdk.return_value = mock_client_instance
 
@@ -235,9 +227,7 @@ class TestVLANMethods:
         """Test retrieval when no VLANs assigned."""
         mock_client_instance = Mock()
         mock_client_instance.execute_graphql.return_value = {
-            "InfrahubInterface": {
-                "edges": [{"node": {"id": "iface-1", "vlans": {"edges": []}}}]
-            }
+            "InfrahubInterface": {"edges": [{"node": {"id": "iface-1", "vlans": {"edges": []}}}]}
         }
         mock_sdk.return_value = mock_client_instance
 
@@ -290,9 +280,7 @@ class TestVLANMethods:
     def test_assign_vlan_to_interface_failure(self, mock_sdk: Mock) -> None:
         """Test VLAN assignment failure."""
         mock_client_instance = Mock()
-        mock_client_instance.execute_graphql.return_value = {
-            "InfrahubInterfaceUpdate": {"ok": False}
-        }
+        mock_client_instance.execute_graphql.return_value = {"InfrahubInterfaceUpdate": {"ok": False}}
         mock_sdk.return_value = mock_client_instance
 
         client = InfrahubClient("http://localhost:8000")

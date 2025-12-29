@@ -180,9 +180,7 @@ from infrahub_sdk import InfrahubClient
 # ============================================================================
 
 
-async def find_permission_by_identifier(
-    client: InfrahubClient, identifier: str
-) -> str | None:
+async def find_permission_by_identifier(client: InfrahubClient, identifier: str) -> str | None:
     """
     Find a permission by its identifier string and return its UUID.
 
@@ -416,9 +414,7 @@ async def ensure_permissions_exist(client: InfrahubClient) -> None:
                 # This can occur if permission was created between our check and create attempt
                 error_msg = str(e)
                 if "uniqueness constraint" in error_msg.lower():
-                    print(
-                        f"  Permission {identifier} already exists (uniqueness constraint)"
-                    )
+                    print(f"  Permission {identifier} already exists (uniqueness constraint)")
                 else:
                     # Other errors are printed but don't halt execution
                     print(f"  Failed to create permission {identifier}: {e}")
@@ -511,9 +507,7 @@ async def create_roles(client: InfrahubClient) -> dict[str, str]:
                 permission_ids.append(perm_uuid)
             else:
                 # This shouldn't happen if ensure_permissions_exist() ran successfully
-                print(
-                    f"  Error: Permission {perm_id} not found after creation attempt!"
-                )
+                print(f"  Error: Permission {perm_id} not found after creation attempt!")
 
         # Check if role already exists in Infrahub
         query = f"""
@@ -554,9 +548,7 @@ async def create_roles(client: InfrahubClient) -> dict[str, str]:
 # ============================================================================
 
 
-async def create_groups(
-    client: InfrahubClient, role_ids: dict[str, str]
-) -> dict[str, str]:
+async def create_groups(client: InfrahubClient, role_ids: dict[str, str]) -> dict[str, str]:
     """
     Create groups and return a mapping of group names to UUIDs.
 

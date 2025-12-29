@@ -65,8 +65,6 @@ def validate_interfaces(data: dict[str, Any]) -> list[str]:
 
     for interface in data.get("interfaces", []):
         if interface.get("role") == "loopback" and not interface.get("ip_addresses"):
-            errors.append(
-                f"Loopback interface {interface.get('name', 'unknown')} is missing IP address"
-            )
+            errors.append(f"Loopback interface {interface.get('name', 'unknown')} is missing IP address")
 
     return errors

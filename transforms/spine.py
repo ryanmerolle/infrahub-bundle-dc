@@ -75,12 +75,8 @@ class Spine(InfrahubTransform):
             "bgp_profiles": bgp_profiles,  # Original list for Cisco/Juniper templates
             "ospf": ospf_single,  # Single dict for Arista templates
             "ospf_configs": ospf_configs,  # List for Cisco/Juniper templates (iteration)
-            "interface_roles": get_interface_roles(
-                data.get("interfaces")
-            ),  # Dict by role for Arista
-            "interfaces": get_interfaces(
-                data.get("interfaces")
-            ),  # Flat list for Cisco/Juniper
+            "interface_roles": get_interface_roles(data.get("interfaces")),  # Dict by role for Arista
+            "interfaces": get_interfaces(data.get("interfaces")),  # Flat list for Cisco/Juniper
             "loopbacks": get_loopbacks(data.get("interfaces")),
         }
 

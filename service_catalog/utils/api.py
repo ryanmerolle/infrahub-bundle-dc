@@ -88,9 +88,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubConnectionError(f"Failed to fetch branches: {str(e)}")
 
-    def get_objects(
-        self, object_type: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_objects(self, object_type: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch objects of a specific type from Infrahub.
 
         Args:
@@ -132,9 +130,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            datacenters = self._client.filters(
-                kind="TopologyDataCenter", branch=branch, prefetch_relationships=True
-            )
+            datacenters = self._client.filters(kind="TopologyDataCenter", branch=branch, prefetch_relationships=True)
 
             result = []
             for dc in datacenters:
@@ -142,15 +138,9 @@ class InfrahubClient:
                     "id": dc.id,
                     "name": {"value": getattr(dc.name, "value", None)},
                     "description": {
-                        "value": getattr(dc.description, "value", None)
-                        if hasattr(dc, "description")
-                        else None
+                        "value": getattr(dc.description, "value", None) if hasattr(dc, "description") else None
                     },
-                    "strategy": {
-                        "value": getattr(dc.strategy, "value", None)
-                        if hasattr(dc, "strategy")
-                        else None
-                    },
+                    "strategy": {"value": getattr(dc.strategy, "value", None) if hasattr(dc, "strategy") else None},
                 }
 
                 # Add relationships if they exist
@@ -207,9 +197,7 @@ class InfrahubClient:
                     "id": colo.id,
                     "name": {"value": getattr(colo.name, "value", None)},
                     "description": {
-                        "value": getattr(colo.description, "value", None)
-                        if hasattr(colo, "description")
-                        else None
+                        "value": getattr(colo.description, "value", None) if hasattr(colo, "description") else None
                     },
                 }
 
@@ -223,9 +211,7 @@ class InfrahubClient:
                     }
 
                 if hasattr(colo, "provider"):
-                    colo_dict["provider"] = {
-                        "value": getattr(colo.provider, "value", None)
-                    }
+                    colo_dict["provider"] = {"value": getattr(colo.provider, "value", None)}
 
                 result.append(colo_dict)
 
@@ -247,9 +233,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            locations = self._client.filters(
-                kind="LocationMetro", branch=branch, prefetch_relationships=False
-            )
+            locations = self._client.filters(kind="LocationMetro", branch=branch, prefetch_relationships=False)
 
             result = []
             for loc in locations:
@@ -278,9 +262,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            providers = self._client.filters(
-                kind="OrganizationProvider", branch=branch, prefetch_relationships=False
-            )
+            providers = self._client.filters(kind="OrganizationProvider", branch=branch, prefetch_relationships=False)
 
             result = []
             for provider in providers:
@@ -309,9 +291,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            designs = self._client.filters(
-                kind="DesignTopology", branch=branch, prefetch_relationships=False
-            )
+            designs = self._client.filters(kind="DesignTopology", branch=branch, prefetch_relationships=False)
 
             result = []
             for design in designs:
@@ -399,9 +379,7 @@ class InfrahubClient:
                 }
 
                 if hasattr(pc, "source_branch"):
-                    pc_dict["source_branch"] = {
-                        "value": getattr(pc.source_branch, "value", None)
-                    }
+                    pc_dict["source_branch"] = {"value": getattr(pc.source_branch, "value", None)}
 
                 result.append(pc_dict)
 
@@ -430,16 +408,12 @@ class InfrahubClient:
             InfrahubGraphQLError: If GraphQL error occurs
         """
         try:
-            result = self._client.execute_graphql(
-                query=query, variables=variables, branch_name=branch
-            )
+            result = self._client.execute_graphql(query=query, variables=variables, branch_name=branch)
             return result
         except Exception as e:
             raise InfrahubGraphQLError(f"GraphQL error: {str(e)}", [])
 
-    def create_branch(
-        self, branch_name: str, from_branch: str = "main", sync_with_git: bool = False
-    ) -> Dict[str, Any]:
+    def create_branch(self, branch_name: str, from_branch: str = "main", sync_with_git: bool = False) -> Dict[str, Any]:
         """Create a new branch in Infrahub.
 
         Args:
@@ -455,9 +429,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            branch = self._client.branch.create(
-                branch_name=branch_name, sync_with_git=sync_with_git
-            )
+            branch = self._client.branch.create(branch_name=branch_name, sync_with_git=sync_with_git)
             return {
                 "name": branch.name,
                 "id": branch.id,
@@ -619,9 +591,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            rows = self._client.filters(
-                kind="LocationRow", branch=branch, prefetch_relationships=False
-            )
+            rows = self._client.filters(kind="LocationRow", branch=branch, prefetch_relationships=False)
 
             result = []
             for row in rows:
@@ -635,9 +605,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch location rows: {str(e)}")
 
-    def get_racks_by_row(
-        self, row_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_racks_by_row(self, row_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch LocationRack objects for a specific row.
 
         Args:
@@ -693,9 +661,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch racks for row: {str(e)}")
 
-    def get_devices_by_rack(
-        self, rack_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_devices_by_rack(self, rack_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch DcimDevice objects for a specific rack.
 
         Args:
@@ -785,9 +751,7 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            buildings = self._client.filters(
-                kind="LocationBuilding", branch=branch, prefetch_relationships=False
-            )
+            buildings = self._client.filters(kind="LocationBuilding", branch=branch, prefetch_relationships=False)
 
             result = []
             for building in buildings:
@@ -801,9 +765,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch location buildings: {str(e)}")
 
-    def get_pods_by_building(
-        self, building_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_pods_by_building(self, building_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch LocationPod objects for a specific building.
 
         Args:
@@ -855,9 +817,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch pods for building: {str(e)}")
 
-    def get_racks_by_pod(
-        self, pod_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_racks_by_pod(self, pod_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch LocationRack objects for a specific pod.
 
         Args:
@@ -1060,9 +1020,7 @@ class InfrahubClient:
                     {
                         "id": node.get("id"),
                         "name": {"value": node.get("name", {}).get("value")},
-                        "description": {
-                            "value": node.get("description", {}).get("value")
-                        },
+                        "description": {"value": node.get("description", {}).get("value")},
                         "role": {"value": node.get("role", {}).get("value")},
                     }
                 )
@@ -1071,9 +1029,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch interfaces for device: {str(e)}")
 
-    def get_vlans_by_interface(
-        self, interface_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_vlans_by_interface(self, interface_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch InterfaceVirtual (VLAN) objects assigned to an interface.
 
         Args:
@@ -1116,9 +1072,7 @@ class InfrahubClient:
             interface_edges = result.get("InfrahubInterface", {}).get("edges", [])
 
             if interface_edges:
-                vlan_edges = (
-                    interface_edges[0].get("node", {}).get("vlans", {}).get("edges", [])
-                )
+                vlan_edges = interface_edges[0].get("node", {}).get("vlans", {}).get("edges", [])
                 for edge in vlan_edges:
                     node = edge.get("node", {})
                     vlans.append(
@@ -1126,9 +1080,7 @@ class InfrahubClient:
                             "id": node.get("id"),
                             "vlan_id": {"value": node.get("vlan_id", {}).get("value")},
                             "name": {"value": node.get("name", {}).get("value")},
-                            "description": {
-                                "value": node.get("description", {}).get("value")
-                            },
+                            "description": {"value": node.get("description", {}).get("value")},
                         }
                     )
 
@@ -1150,24 +1102,16 @@ class InfrahubClient:
             InfrahubAPIError: If API error occurs
         """
         try:
-            vlans = self._client.filters(
-                kind="InterfaceVirtual", branch=branch, prefetch_relationships=False
-            )
+            vlans = self._client.filters(kind="InterfaceVirtual", branch=branch, prefetch_relationships=False)
 
             result = []
             for vlan in vlans:
                 vlan_dict = {
                     "id": vlan.id,
-                    "vlan_id": {
-                        "value": getattr(vlan.vlan_id, "value", None)
-                        if hasattr(vlan, "vlan_id")
-                        else None
-                    },
+                    "vlan_id": {"value": getattr(vlan.vlan_id, "value", None) if hasattr(vlan, "vlan_id") else None},
                     "name": {"value": getattr(vlan.name, "value", None)},
                     "description": {
-                        "value": getattr(vlan.description, "value", None)
-                        if hasattr(vlan, "description")
-                        else None
+                        "value": getattr(vlan.description, "value", None) if hasattr(vlan, "description") else None
                     },
                 }
                 result.append(vlan_dict)
@@ -1176,9 +1120,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch VLANs: {str(e)}")
 
-    def assign_vlan_to_interface(
-        self, interface_id: str, vlan_id: str, branch: str
-    ) -> Dict[str, Any]:
+    def assign_vlan_to_interface(self, interface_id: str, vlan_id: str, branch: str) -> Dict[str, Any]:
         """Assign a VLAN to an interface using GraphQL mutation.
 
         Args:
@@ -1336,9 +1278,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to fetch deployments: {str(e)}")
 
-    def create_network_segment(
-        self, branch: str, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def create_network_segment(self, branch: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a ServiceNetworkSegment object.
 
         Args:
@@ -1419,9 +1359,7 @@ class InfrahubClient:
         except Exception as e:
             raise InfrahubAPIError(f"Failed to create network segment: {str(e)}")
 
-    def get_network_segments_by_deployment(
-        self, deployment_id: str, branch: str = "main"
-    ) -> List[Dict[str, Any]]:
+    def get_network_segments_by_deployment(self, deployment_id: str, branch: str = "main") -> List[Dict[str, Any]]:
         """Fetch ServiceNetworkSegment objects for a specific deployment.
 
         Args:
@@ -1460,9 +1398,7 @@ class InfrahubClient:
             }
             """
 
-            result = self.execute_graphql(
-                query, {"deployment_id": deployment_id}, branch
-            )
+            result = self.execute_graphql(query, {"deployment_id": deployment_id}, branch)
 
             segments = []
             edges = result.get("ServiceNetworkSegment", {}).get("edges", [])
@@ -1474,24 +1410,12 @@ class InfrahubClient:
                     {
                         "id": node.get("id"),
                         "name": {"value": node.get("name", {}).get("value")},
-                        "customer_name": {
-                            "value": node.get("customer_name", {}).get("value")
-                        },
-                        "environment": {
-                            "value": node.get("environment", {}).get("value")
-                        },
-                        "segment_type": {
-                            "value": node.get("segment_type", {}).get("value")
-                        },
-                        "tenant_isolation": {
-                            "value": node.get("tenant_isolation", {}).get("value")
-                        },
+                        "customer_name": {"value": node.get("customer_name", {}).get("value")},
+                        "environment": {"value": node.get("environment", {}).get("value")},
+                        "segment_type": {"value": node.get("segment_type", {}).get("value")},
+                        "tenant_isolation": {"value": node.get("tenant_isolation", {}).get("value")},
                         "vlan_id": {"value": node.get("vlan_id", {}).get("value")},
-                        "owner": {
-                            "value": owner_node.get("display_label")
-                            if owner_node
-                            else None
-                        },
+                        "owner": {"value": owner_node.get("display_label") if owner_node else None},
                     }
                 )
 

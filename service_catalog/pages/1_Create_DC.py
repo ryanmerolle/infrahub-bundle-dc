@@ -151,9 +151,7 @@ def extract_template_values(template: Dict[str, Any]) -> Optional[Dict[str, Any]
             "management_subnet_data": data.get("management_subnet", {}).get("data", {}),
             "customer_subnet_data": data.get("customer_subnet", {}).get("data", {}),
             "technical_subnet_data": data.get("technical_subnet", {}).get("data", {}),
-            "member_of_groups": data.get(
-                "member_of_groups", ["topologies_dc", "topologies_clab"]
-            ),
+            "member_of_groups": data.get("member_of_groups", ["topologies_dc", "topologies_clab"]),
         }
 
         return values
@@ -216,18 +214,14 @@ def wait_for_generator(duration: int = 60) -> None:
         percentage = int(progress * 100)
 
         # Update progress bar with text
-        progress_bar.progress(
-            progress, text=f"Generator running... {percentage}% complete"
-        )
+        progress_bar.progress(progress, text=f"Generator running... {percentage}% complete")
 
         # Update status text
         remaining = duration - i
         elapsed = i
 
         # Show time information with better formatting
-        time_display.markdown(
-            f"**Time:** {elapsed}s elapsed / {remaining}s remaining ({duration}s total)"
-        )
+        time_display.markdown(f"**Time:** {elapsed}s elapsed / {remaining}s remaining ({duration}s total)")
 
         # Wait 1 second (except on last iteration)
         if i < duration:
@@ -266,9 +260,7 @@ def initialize_dc_creation_state(form_data: Dict[str, Any]) -> None:
 
 def render_progress_tracker() -> None:
     """Render the progress tracker based on current state."""
-    if "dc_creation" not in st.session_state or not st.session_state.dc_creation.get(
-        "active"
-    ):
+    if "dc_creation" not in st.session_state or not st.session_state.dc_creation.get("active"):
         return
 
     state = st.session_state.dc_creation
@@ -327,9 +319,7 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
                 "management_subnet": form_data["management_subnet"],
                 "customer_subnet": form_data["customer_subnet"],
                 "technical_subnet": form_data["technical_subnet"],
-                "member_of_groups": form_data.get(
-                    "member_of_groups", ["topologies_dc", "topologies_clab"]
-                ),
+                "member_of_groups": form_data.get("member_of_groups", ["topologies_dc", "topologies_clab"]),
             }
 
             with st.status("Creating datacenter...", expanded=True) as status:
@@ -344,9 +334,7 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
         elif step == 3:
             # Step 3: Wait for generator
             with st.status("Waiting for generator...", expanded=True) as status:
-                st.write(
-                    f"Waiting {GENERATOR_WAIT_TIME} seconds for generator to complete..."
-                )
+                st.write(f"Waiting {GENERATOR_WAIT_TIME} seconds for generator to complete...")
                 wait_for_generator(GENERATOR_WAIT_TIME)
                 st.write("✓ Generator wait complete")
                 status.update(label="Generator complete!", state="complete")
@@ -396,9 +384,7 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
         state["active"] = False
 
         if step == 1:
-            display_error(
-                "Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}"
-            )
+            display_error("Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}")
         elif step == 2:
             display_error(
                 "Failed to create datacenter",
@@ -435,17 +421,13 @@ def main() -> None:
     st.title("Create Data Center")
 
     # Check if DC creation is in progress
-    dc_creation_active = (
-        "dc_creation" in st.session_state and st.session_state.dc_creation.get("active")
-    )
+    dc_creation_active = "dc_creation" in st.session_state and st.session_state.dc_creation.get("active")
 
     # Normal form display
     if not dc_creation_active:
         st.markdown("Fill in the form below to create a new Data Center in Infrahub.")
     else:
-        st.info(
-            "📋 Datacenter creation in progress... Form is read-only during execution."
-        )
+        st.info("📋 Datacenter creation in progress... Form is read-only during execution.")
 
     # Initialize API client to fetch locations
     client = InfrahubClient(
@@ -530,18 +512,13 @@ def main() -> None:
 
     # Template selector (outside form for immediate response)
     st.subheader("📋 Template Selection")
-    st.markdown(
-        "Optionally select a pre-defined datacenter template to pre-populate the form values."
-    )
+    st.markdown("Optionally select a pre-defined datacenter template to pre-populate the form values.")
 
     selected_template = st.selectbox(
         "Select DC Template",
         options=st.session_state.available_dc_templates,
-        index=st.session_state.available_dc_templates.index(
-            st.session_state.selected_dc_template
-        )
-        if st.session_state.selected_dc_template
-        in st.session_state.available_dc_templates
+        index=st.session_state.available_dc_templates.index(st.session_state.selected_dc_template)
+        if st.session_state.selected_dc_template in st.session_state.available_dc_templates
         else 0,
         help="Choose a template to pre-fill form fields, or select 'None (Manual Entry)' to fill manually",
         disabled=dc_creation_active,
@@ -561,13 +538,9 @@ def main() -> None:
                     if template:
                         template_values = extract_template_values(template)
                         if template_values:
-                            st.success(
-                                f"✓ Template '{selected_template}' loaded successfully!"
-                            )
+                            st.success(f"✓ Template '{selected_template}' loaded successfully!")
                         else:
-                            st.error(
-                                f"Failed to extract values from template '{selected_template}'"
-                            )
+                            st.error(f"Failed to extract values from template '{selected_template}'")
             else:
                 st.info("Manual entry mode - fill in all fields below")
         else:
@@ -578,10 +551,7 @@ def main() -> None:
                     template_values = extract_template_values(template)
 
     # Load template values if a template is selected
-    if (
-        st.session_state.selected_dc_template != "None (Manual Entry)"
-        and template_values is None
-    ):
+    if st.session_state.selected_dc_template != "None (Manual Entry)" and template_values is None:
         template = load_specific_dc_template(st.session_state.selected_dc_template)
         if template:
             template_values = extract_template_values(template)
@@ -606,23 +576,12 @@ def main() -> None:
             )
 
             # Prepare location options from fetched locations
-            location_names = [
-                loc.get("name", {}).get("value") for loc in st.session_state.locations
-            ]
-            location_map = {
-                loc.get("name", {}).get("value"): loc.get("id")
-                for loc in st.session_state.locations
-            }
+            location_names = [loc.get("name", {}).get("value") for loc in st.session_state.locations]
+            location_map = {loc.get("name", {}).get("value"): loc.get("id") for loc in st.session_state.locations}
 
             # Pre-select location from template if available
-            default_location = (
-                template_values.get("location", "") if template_values else ""
-            )
-            location_index = (
-                location_names.index(default_location)
-                if default_location in location_names
-                else 0
-            )
+            default_location = template_values.get("location", "") if template_values else ""
+            location_index = location_names.index(default_location) if default_location in location_names else 0
 
             location_name = st.selectbox(
                 "Location *",
@@ -637,16 +596,8 @@ def main() -> None:
 
             # Pre-select strategy from template if available
             strategy_options = ["ospf-ibgp", "isis-ibgp", "ospf-ebgp"]
-            default_strategy = (
-                template_values.get("strategy", "ospf-ibgp")
-                if template_values
-                else "ospf-ibgp"
-            )
-            strategy_index = (
-                strategy_options.index(default_strategy)
-                if default_strategy in strategy_options
-                else 0
-            )
+            default_strategy = template_values.get("strategy", "ospf-ibgp") if template_values else "ospf-ibgp"
+            strategy_index = strategy_options.index(default_strategy) if default_strategy in strategy_options else 0
 
             strategy = st.selectbox(
                 "Strategy *",
@@ -657,23 +608,12 @@ def main() -> None:
             )
 
             # Prepare provider options
-            provider_names = [
-                p.get("name", {}).get("value") for p in st.session_state.providers
-            ]
-            provider_map = {
-                p.get("name", {}).get("value"): p.get("id")
-                for p in st.session_state.providers
-            }
+            provider_names = [p.get("name", {}).get("value") for p in st.session_state.providers]
+            provider_map = {p.get("name", {}).get("value"): p.get("id") for p in st.session_state.providers}
 
             # Pre-select provider from template if available
-            default_provider = (
-                template_values.get("provider", "") if template_values else ""
-            )
-            provider_index = (
-                provider_names.index(default_provider)
-                if default_provider in provider_names
-                else 0
-            )
+            default_provider = template_values.get("provider", "") if template_values else ""
+            provider_index = provider_names.index(default_provider) if default_provider in provider_names else 0
 
             provider_name = st.selectbox(
                 "Provider *",
@@ -688,9 +628,7 @@ def main() -> None:
 
         with col2:
             # Pre-fill description from template if available
-            default_description = (
-                template_values.get("description", "") if template_values else ""
-            )
+            default_description = template_values.get("description", "") if template_values else ""
 
             description = st.text_area(
                 "Description",
@@ -701,23 +639,12 @@ def main() -> None:
             )
 
             # Prepare design options
-            design_names = [
-                d.get("name", {}).get("value") for d in st.session_state.designs
-            ]
-            design_map = {
-                d.get("name", {}).get("value"): d.get("id")
-                for d in st.session_state.designs
-            }
+            design_names = [d.get("name", {}).get("value") for d in st.session_state.designs]
+            design_map = {d.get("name", {}).get("value"): d.get("id") for d in st.session_state.designs}
 
             # Pre-select design from template if available
-            default_design = (
-                template_values.get("design", "") if template_values else ""
-            )
-            design_index = (
-                design_names.index(default_design)
-                if default_design in design_names
-                else 0
-            )
+            default_design = template_values.get("design", "") if template_values else ""
+            design_index = design_names.index(default_design) if default_design in design_names else 0
 
             design_name = st.selectbox(
                 "Design *",
@@ -731,9 +658,7 @@ def main() -> None:
             design_id = design_map.get(design_name) if design_name else None
 
             # Pre-fill emulation from template if available
-            default_emulation = (
-                template_values.get("emulation", True) if template_values else True
-            )
+            default_emulation = template_values.get("emulation", True) if template_values else True
 
             emulation = st.checkbox(
                 "Emulation",
@@ -757,11 +682,7 @@ def main() -> None:
             prefix_options[display_text] = prefix_id
             prefix_map[prefix_id] = {"prefix": prefix_value}
 
-        option_list = (
-            list(prefix_options.keys())
-            if prefix_options
-            else ["No active prefixes available"]
-        )
+        option_list = list(prefix_options.keys()) if prefix_options else ["No active prefixes available"]
 
         # Extract subnet prefix values from template if available
         mgmt_subnet_prefix = ""
@@ -794,9 +715,7 @@ def main() -> None:
             help="Select an active prefix for management subnet",
             disabled=dc_creation_active or not prefix_options,
         )
-        mgmt_prefix_id = (
-            prefix_options.get(mgmt_prefix_display) if prefix_options else None
-        )
+        mgmt_prefix_id = prefix_options.get(mgmt_prefix_display) if prefix_options else None
 
         # Customer Subnet
         st.markdown("**Customer Subnet**")
@@ -814,9 +733,7 @@ def main() -> None:
             help="Select an active prefix for customer subnet",
             disabled=dc_creation_active or not prefix_options,
         )
-        cust_prefix_id = (
-            prefix_options.get(cust_prefix_display) if prefix_options else None
-        )
+        cust_prefix_id = prefix_options.get(cust_prefix_display) if prefix_options else None
 
         # Technical Subnet
         st.markdown("**Technical Subnet**")
@@ -834,9 +751,7 @@ def main() -> None:
             help="Select an active prefix for technical subnet",
             disabled=dc_creation_active or not prefix_options,
         )
-        tech_prefix_id = (
-            prefix_options.get(tech_prefix_display) if prefix_options else None
-        )
+        tech_prefix_id = prefix_options.get(tech_prefix_display) if prefix_options else None
 
         # Submit button
         st.markdown("---")

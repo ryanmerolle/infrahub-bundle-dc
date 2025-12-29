@@ -44,9 +44,7 @@ MERGE_PROPAGATION_DELAY = 10  # seconds
 
 T = TypeVar("T")
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 class TestDCWorkflow(TestInfrahubDockerWithClient):
@@ -83,9 +81,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         yield
         # Cleanup branch if tests failed
         if request.session.testsfailed:
-            logging.warning(
-                "Tests failed, attempting to clean up branch: %s", default_branch
-            )
+            logging.warning("Tests failed, attempting to clean up branch: %s", default_branch)
             try:
                 existing_branches = client_main.branch.all()
                 if default_branch in existing_branches:
@@ -128,8 +124,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             await asyncio.sleep(poll_interval)
 
         raise TimeoutError(
-            f"Timeout waiting for {description} after {max_attempts} attempts "
-            f"({max_attempts * poll_interval} seconds)"
+            f"Timeout waiting for {description} after {max_attempts} attempts ({max_attempts * poll_interval} seconds)"
         )
 
     @pytest.mark.order(1)
@@ -147,9 +142,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Schema load stderr: %s", load_schemas.stderr)
 
         # Check that schemas loaded successfully (even if returncode is non-zero due to warnings)
-        assert (
-            "loaded successfully" in load_schemas.stdout or load_schemas.returncode == 0
-        ), (
+        assert "loaded successfully" in load_schemas.stdout or load_schemas.returncode == 0, (
             f"Schema load failed.\n"
             f"  Return code: {load_schemas.returncode}\n"
             f"  stdout: {load_schemas.stdout}\n"
@@ -250,17 +243,13 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
         # Use wait_for_condition helper for repository sync
         async def check_repo_sync() -> tuple[bool, Any]:
-            repository = await client.get(
-                kind=git_repository.type.value, name__value="demo_repo"
-            )
+            repository = await client.get(kind=git_repository.type.value, name__value="demo_repo")
             sync_status = repository.sync_status.value
             synchronized = sync_status == "in-sync"
             has_error = "error" in sync_status
 
             if has_error:
-                raise AssertionError(
-                    f"Repository sync failed with error status: {sync_status}"
-                )
+                raise AssertionError(f"Repository sync failed with error status: {sync_status}")
             return synchronized, repository
 
         try:
@@ -274,9 +263,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             logging.info("Repository synchronized successfully (ID: %s)", repository.id)
         except TimeoutError as e:
             # Get final status for error message
-            repository = await client.get(
-                kind=git_repository.type.value, name__value="demo_repo"
-            )
+            repository = await client.get(kind=git_repository.type.value, name__value="demo_repo")
             raise AssertionError(
                 f"Repository failed to sync within timeout.\n"
                 f"  Final status: {repository.sync_status.value}\n"
@@ -285,13 +272,9 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
     @pytest.mark.order(6)
     @pytest.mark.dependency(name="create_branch", depends=["add_repository"])
-    def test_06_create_branch(
-        self, client_main: InfrahubClientSync, default_branch: str
-    ) -> None:
+    def test_06_create_branch(self, client_main: InfrahubClientSync, default_branch: str) -> None:
         """Create a new branch for the DC-3 deployment."""
-        logging.info(
-            "Starting test: test_06_create_branch - branch: %s", default_branch
-        )
+        logging.info("Starting test: test_06_create_branch - branch: %s", default_branch)
 
         # Check if branch already exists
         existing_branches = client_main.branch.all()
@@ -311,9 +294,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
     @pytest.mark.order(7)
     @pytest.mark.dependency(name="load_dc_design", depends=["create_branch"])
-    def test_07_load_dc_design(
-        self, client_main: InfrahubClientSync, default_branch: str
-    ) -> None:
+    def test_07_load_dc_design(self, client_main: InfrahubClientSync, default_branch: str) -> None:
         """Load dc-arista design data onto the branch."""
         logging.info("Starting test: test_07_load_dc_design")
 
@@ -363,9 +344,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             f"  Expected: TopologyDataCenter with name 'dc-arista'\n"
             f"  The dc-arista-s.yml may have failed to load in test_07."
         )
-        assert dc.name.value == "dc-arista", (
-            f"Unexpected topology name.\n  Expected: dc-arista\n  Got: {dc.name.value}"
-        )
+        assert dc.name.value == "dc-arista", f"Unexpected topology name.\n  Expected: dc-arista\n  Got: {dc.name.value}"
 
         workflow_state["dc_id"] = dc.id
         logging.info("dc-arista topology verified: %s (ID: %s)", dc.name.value, dc.id)
@@ -472,9 +451,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Generator task started: %s", task_id)
 
         # Wait for generator to complete (can take a while for DC generation)
-        task = await client.task.wait_for_completion(
-            id=task_id, timeout=GENERATOR_TASK_TIMEOUT
-        )
+        task = await client.task.wait_for_completion(id=task_id, timeout=GENERATOR_TASK_TIMEOUT)
         workflow_state["generator_task_state"] = str(task.state)
 
         # The generator task can fail due to post-processing issues (like GraphQL
@@ -482,8 +459,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         # So we check if the task completed OR if devices exist (test_10 will verify).
         if task.state != TaskState.COMPLETED:
             logging.warning(
-                "Generator task %s finished with state %s, "
-                "but will verify devices were created in next test",
+                "Generator task %s finished with state %s, but will verify devices were created in next test",
                 task.id,
                 task.state,
             )
@@ -532,9 +508,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
     @pytest.mark.order(11)
     @pytest.mark.dependency(name="create_diff", depends=["verify_devices_created"])
-    def test_11_create_diff(
-        self, client_main: InfrahubClientSync, default_branch: str
-    ) -> None:
+    def test_11_create_diff(self, client_main: InfrahubClientSync, default_branch: str) -> None:
         """Create a diff for the branch."""
         logging.info("Starting test: test_11_create_diff")
 
@@ -552,9 +526,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
         response = client_main.execute_graphql(query=mutation.render())
         task_id = response["DiffUpdate"]["task"]["id"]
-        task = client_main.task.wait_for_completion(
-            id=task_id, timeout=DIFF_TASK_TIMEOUT
-        )
+        task = client_main.task.wait_for_completion(id=task_id, timeout=DIFF_TASK_TIMEOUT)
 
         assert task.state == TaskState.COMPLETED, (
             f"Diff creation did not complete successfully.\n"
@@ -610,14 +582,11 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
             if pc.validations.peers:
                 validations_completed = all(
-                    validation.peer.state.value == "completed"
-                    for validation in pc.validations.peers
+                    validation.peer.state.value == "completed" for validation in pc.validations.peers
                 )
 
                 if validations_completed:
-                    validation_results = [
-                        validation.peer for validation in pc.validations.peers
-                    ]
+                    validation_results = [validation.peer for validation in pc.validations.peers]
                     break
 
             logging.info(
@@ -647,11 +616,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         if failed_validations:
             for result in failed_validations:
                 name = result.name.value if hasattr(result, "name") else str(result.id)
-                conclusion = (
-                    result.conclusion.value
-                    if hasattr(result, "conclusion")
-                    else "unknown"
-                )
+                conclusion = result.conclusion.value if hasattr(result, "conclusion") else "unknown"
                 logging.error(
                     "Validation failed: %s - %s",
                     name,
@@ -663,15 +628,11 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Validations completed. Results:")
         for result in validation_results:
             name = result.name.value if hasattr(result, "name") else str(result.id)
-            conclusion = (
-                result.conclusion.value if hasattr(result, "conclusion") else "unknown"
-            )
+            conclusion = result.conclusion.value if hasattr(result, "conclusion") else "unknown"
             logging.info("  - %s: %s", name, conclusion)
 
     @pytest.mark.order(13)
-    @pytest.mark.dependency(
-        name="merge_proposed_change", depends=["create_proposed_change"]
-    )
+    @pytest.mark.dependency(name="merge_proposed_change", depends=["create_proposed_change"])
     def test_13_merge_proposed_change(
         self,
         client_main: InfrahubClientSync,
@@ -708,9 +669,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
         response = client_main.execute_graphql(query=mutation.render())
         task_id = response["CoreProposedChangeMerge"]["task"]["id"]
-        task = client_main.task.wait_for_completion(
-            id=task_id, timeout=MERGE_TASK_TIMEOUT
-        )
+        task = client_main.task.wait_for_completion(id=task_id, timeout=MERGE_TASK_TIMEOUT)
 
         logging.info(
             "Merge task %s finished with state: %s",
@@ -740,11 +699,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             name__value=f"Add Arista DC - Test {default_branch}",
         )
 
-        pc_state = (
-            pc_after_merge.state.value
-            if hasattr(pc_after_merge.state, "value")
-            else pc_after_merge.state
-        )
+        pc_state = pc_after_merge.state.value if hasattr(pc_after_merge.state, "value") else pc_after_merge.state
         logging.info("Proposed change state after merge: %s", pc_state)
 
         # The PC should be in 'merged' or 'closed' state if merge succeeded
@@ -766,13 +721,9 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
         logging.info("Proposed change merged successfully")
 
     @pytest.mark.order(14)
-    @pytest.mark.dependency(
-        name="verify_merge_to_main", depends=["merge_proposed_change"]
-    )
+    @pytest.mark.dependency(name="verify_merge_to_main", depends=["merge_proposed_change"])
     @pytest.mark.asyncio
-    async def test_14_verify_merge_to_main(
-        self, async_client_main: InfrahubClient, default_branch: str
-    ) -> None:
+    async def test_14_verify_merge_to_main(self, async_client_main: InfrahubClient, default_branch: str) -> None:
         """Verify that dc-arista and devices exist in main branch."""
         logging.info("Starting test: test_14_verify_merge_to_main")
 
@@ -806,9 +757,7 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
             logging.info("dc-arista not found in main, gathering diagnostics...")
 
             all_dcs = await client.all(kind="TopologyDataCenter")
-            dc_names = [
-                dc.name.value if hasattr(dc, "name") else str(dc) for dc in all_dcs
-            ]
+            dc_names = [dc.name.value if hasattr(dc, "name") else str(dc) for dc in all_dcs]
             logging.info("Datacenters in main branch: %s", dc_names)
             diagnostic_info.append(f"Available datacenters: {dc_names}")
 
@@ -818,12 +767,8 @@ class TestDCWorkflow(TestInfrahubDockerWithClient):
 
             for pc in proposed_changes:
                 if hasattr(pc, "name") and "Arista DC" in pc.name.value:
-                    pc_state = (
-                        pc.state.value if hasattr(pc.state, "value") else pc.state
-                    )
-                    logging.info(
-                        "Found PC '%s' with state: %s", pc.name.value, pc_state
-                    )
+                    pc_state = pc.state.value if hasattr(pc.state, "value") else pc.state
+                    logging.info("Found PC '%s' with state: %s", pc.name.value, pc_state)
                     diagnostic_info.append(f"PC '{pc.name.value}' state: {pc_state}")
 
         assert dc_main, (

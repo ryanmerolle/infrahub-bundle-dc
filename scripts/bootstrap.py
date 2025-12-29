@@ -126,12 +126,8 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
 
     # Create a Rich progress bar with multiple columns for visual feedback
     with Progress(
-        SpinnerColumn(
-            spinner_name="dots12", style="bold bright_magenta"
-        ),  # Animated spinner
-        TextColumn(
-            "[progress.description]{task.description}", style="bold white"
-        ),  # Task description
+        SpinnerColumn(spinner_name="dots12", style="bold bright_magenta"),  # Animated spinner
+        TextColumn("[progress.description]{task.description}", style="bold white"),  # Task description
         BarColumn(  # Progress bar showing completion percentage
             bar_width=60,
             style="magenta",  # In-progress color
@@ -154,9 +150,7 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
                 response = requests.get(f"{INFRAHUB_ADDRESS}/api/schema", timeout=2)
                 if response.status_code == 200:
                     # Success! Infrahub is ready
-                    progress.update(
-                        task, completed=max_retries
-                    )  # Complete the progress bar
+                    progress.update(task, completed=max_retries)  # Complete the progress bar
                     console.print("[bold green]✓ Infrahub is ready![/bold green]\n")
                     return True
             except requests.exceptions.RequestException:
@@ -185,9 +179,7 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
     return False
 
 
-def run_command(
-    command: str, description: str, step: str, color: str = "cyan", icon: str = ""
-) -> bool:
+def run_command(command: str, description: str, step: str, color: str = "cyan", icon: str = "") -> bool:
     """
     Execute a shell command with visual feedback and error handling.
 
@@ -242,9 +234,7 @@ def run_command(
         return True
     except subprocess.CalledProcessError as e:
         # Command failed - display error message
-        console.print(
-            f"[bold red]✗[/bold red] {icon_display}[red]Failed: {description}[/red]"
-        )
+        console.print(f"[bold red]✗[/bold red] {icon_display}[red]Failed: {description}[/red]")
         console.print(f"[dim]Error: {e}[/dim]")
         return False
 
@@ -479,9 +469,7 @@ def main(branch: str = "main") -> int:
         console.print("[dim]Using local repository: /upstream[/dim]")
     else:
         repo_file = "objects/git-repo/github.yml"
-        console.print(
-            "[dim]Using GitHub repository: https://github.com/opsmill/infrahub-bundle-dc.git[/dim]"
-        )
+        console.print("[dim]Using GitHub repository: https://github.com/opsmill/infrahub-bundle-dc.git[/dim]")
 
     # Execute repository addition command
     # capture_output=True prevents streaming to terminal (we handle output manually)
@@ -498,17 +486,12 @@ def main(branch: str = "main") -> int:
             "[bold bright_green on black]✓[/bold bright_green on black] 📚 [bold bright_magenta]Repository added[/bold bright_magenta]"
         )
     else:
-        if (
-            "already exists" in result.stderr.lower()
-            or "already exists" in result.stdout.lower()
-        ):
+        if "already exists" in result.stderr.lower() or "already exists" in result.stdout.lower():
             console.print(
                 "[bold yellow on black]⚠[/bold yellow on black] 📚 [bold bright_magenta]Repository already exists, skipping...[/bold bright_magenta]"
             )
         else:
-            console.print(
-                "[bold red]✗[/bold red] 📚 [red]Failed to add repository[/red]"
-            )
+            console.print("[bold red]✗[/bold red] 📚 [red]Failed to add repository[/red]")
             console.print(f"[dim]{result.stderr}[/dim]")
 
     console.print(Rule(style="dim bright_magenta"))
@@ -581,9 +564,7 @@ def main(branch: str = "main") -> int:
 
 if __name__ == "__main__":
     # Set up argument parser for command-line options
-    parser = argparse.ArgumentParser(
-        description="Bootstrap Infrahub with schemas, data, and configurations"
-    )
+    parser = argparse.ArgumentParser(description="Bootstrap Infrahub with schemas, data, and configurations")
 
     # Add --branch argument to allow targeting specific Infrahub branches
     # Default is "main" branch, but users can specify development branches

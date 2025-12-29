@@ -20,9 +20,7 @@ st.set_page_config(
 display_logo()
 
 # Define pages with hierarchical structure
-home_page = st.Page(
-    "pages/0_Dashboard.py", title="Home", icon="🏠", default=True, url_path="dashboard"
-)
+home_page = st.Page("pages/0_Dashboard.py", title="Home", icon="🏠", default=True, url_path="dashboard")
 
 service_catalog_pages = [
     st.Page("pages/1_Create_DC.py", title="Create DC", icon="🏗️"),

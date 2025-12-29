@@ -35,9 +35,7 @@ if "device_label_mode" not in st.session_state:
     st.session_state.device_label_mode = "Hostname"
 
 
-def render_rack_diagram(
-    rack: Dict[str, Any], devices: List[Dict[str, Any]], label_mode: str = "Hostname"
-) -> None:
+def render_rack_diagram(rack: Dict[str, Any], devices: List[Dict[str, Any]], label_mode: str = "Hostname") -> None:
     """Render a single rack diagram with devices.
 
     Generates HTML visualization of the rack and displays it using Streamlit.
@@ -75,9 +73,7 @@ def render_rack_diagram(
         st.caption("Empty rack")
 
 
-def render_rack_grid(
-    client: InfrahubClient, row_id: str, branch: str, label_mode: str = "Hostname"
-) -> None:
+def render_rack_grid(client: InfrahubClient, row_id: str, branch: str, label_mode: str = "Hostname") -> None:
     """Render grid of rack diagrams for the selected row.
 
     Fetches all racks for the row and displays them in a responsive grid layout.
@@ -107,9 +103,7 @@ def render_rack_grid(
                     devices = client.get_devices_by_rack(rack["id"], branch)
                     rack_devices[rack["id"]] = devices
                 except (InfrahubAPIError, InfrahubConnectionError) as e:
-                    st.warning(
-                        f"Failed to load devices for rack {rack['name']['value']}: {str(e)}"
-                    )
+                    st.warning(f"Failed to load devices for rack {rack['name']['value']}: {str(e)}")
                     rack_devices[rack["id"]] = []
 
         # Render racks in columns (max 4 per row)
@@ -174,17 +168,12 @@ def render_row_selector(client: InfrahubClient, branch: str) -> str:
     rows = st.session_state[cache_key]
 
     if not rows:
-        st.warning(
-            f"No location rows found in branch '{branch}'. "
-            "Please create LocationRow objects in Infrahub."
-        )
+        st.warning(f"No location rows found in branch '{branch}'. Please create LocationRow objects in Infrahub.")
         return ""
 
     # Prepare row options
     row_names = [row.get("name", {}).get("value", "Unknown") for row in rows]
-    row_map = {
-        row.get("name", {}).get("value", "Unknown"): row.get("id") for row in rows
-    }
+    row_map = {row.get("name", {}).get("value", "Unknown"): row.get("id") for row in rows}
 
     # Display row selector
     selected_row_name = st.selectbox(
@@ -245,9 +234,7 @@ def main() -> None:
 
     # Page title
     st.title("Rack Visualization")
-    st.markdown(
-        "View physical rack layouts and device placement within your infrastructure."
-    )
+    st.markdown("View physical rack layouts and device placement within your infrastructure.")
 
     # Branch selector in sidebar
     st.sidebar.markdown("---")
@@ -270,9 +257,7 @@ def main() -> None:
                 default_index = branch_names.index(st.session_state.selected_branch)
             except ValueError:
                 default_index = 0
-                st.session_state.selected_branch = (
-                    branch_names[0] if branch_names else DEFAULT_BRANCH
-                )
+                st.session_state.selected_branch = branch_names[0] if branch_names else DEFAULT_BRANCH
 
             # Display branch selector dropdown
             selected_branch = st.sidebar.selectbox(
@@ -287,11 +272,7 @@ def main() -> None:
             if selected_branch != st.session_state.selected_branch:
                 st.session_state.selected_branch = selected_branch
                 # Clear cached row data when branch changes
-                keys_to_clear = [
-                    key
-                    for key in st.session_state.keys()
-                    if key.startswith("location_rows_")
-                ]
+                keys_to_clear = [key for key in st.session_state.keys() if key.startswith("location_rows_")]
                 for key in keys_to_clear:
                     del st.session_state[key]
                 st.rerun()
@@ -302,9 +283,7 @@ def main() -> None:
         display_error("Unable to connect to Infrahub", str(e))
         st.stop()
     except InfrahubHTTPError as e:
-        display_error(
-            f"HTTP Error {e.status_code}", f"{str(e)}\n\nResponse: {e.response_text}"
-        )
+        display_error(f"HTTP Error {e.status_code}", f"{str(e)}\n\nResponse: {e.response_text}")
         st.stop()
     except InfrahubGraphQLError as e:
         display_error("GraphQL Error", str(e))

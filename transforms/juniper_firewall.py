@@ -77,19 +77,13 @@ class JuniperFirewall(InfrahubTransform):
 
                 # Extract zones
                 if rule.get("source_zone", {}).get("node"):
-                    rule_data["source_zone"] = rule["source_zone"]["node"]["name"][
-                        "value"
-                    ]
+                    rule_data["source_zone"] = rule["source_zone"]["node"]["name"]["value"]
 
                 if rule.get("destination_zone", {}).get("node"):
-                    rule_data["destination_zone"] = rule["destination_zone"]["node"][
-                        "name"
-                    ]["value"]
+                    rule_data["destination_zone"] = rule["destination_zone"]["node"]["name"]["value"]
 
                 # Extract source addresses from address groups
-                for addr_group_edge in rule.get("source_addresses", {}).get(
-                    "edges", []
-                ):
+                for addr_group_edge in rule.get("source_addresses", {}).get("edges", []):
                     addr_group = addr_group_edge["node"]
 
                     # Process IP addresses in the group
@@ -135,9 +129,7 @@ class JuniperFirewall(InfrahubTransform):
                             }
 
                 # Extract destination addresses from address groups
-                for addr_group_edge in rule.get("destination_addresses", {}).get(
-                    "edges", []
-                ):
+                for addr_group_edge in rule.get("destination_addresses", {}).get("edges", []):
                     addr_group = addr_group_edge["node"]
 
                     # Process IP addresses in the group

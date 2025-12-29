@@ -23,9 +23,7 @@ console = Console()
 
 INFRAHUB_VERSION = os.getenv("INFRAHUB_VERSION", "stable")
 INFRAHUB_ENTERPRISE = os.getenv("INFRAHUB_ENTERPRISE", "false").lower() == "true"
-INFRAHUB_SERVICE_CATALOG = (
-    os.getenv("INFRAHUB_SERVICE_CATALOG", "false").lower() == "true"
-)
+INFRAHUB_SERVICE_CATALOG = os.getenv("INFRAHUB_SERVICE_CATALOG", "false").lower() == "true"
 INFRAHUB_GIT_LOCAL = os.getenv("INFRAHUB_GIT_LOCAL", "false").lower() == "true"
 MAIN_DIRECTORY_PATH = Path(__file__).parent
 
@@ -40,9 +38,7 @@ def get_compose_command() -> str:
     if local_compose_file.exists():
         # Use local docker-compose.yml file
         if override_file.exists():
-            return (
-                f"docker compose -p infrahub -f {local_compose_file} -f {override_file}"
-            )
+            return f"docker compose -p infrahub -f {local_compose_file} -f {override_file}"
         return f"docker compose -p infrahub-bundle-dc -f {local_compose_file}"
 
     # Fall back to downloading from infrahub.opsmill.io
@@ -53,9 +49,7 @@ def get_compose_command() -> str:
         base_url = f"https://infrahub.opsmill.io/{INFRAHUB_VERSION}"
 
     if override_file.exists():
-        return (
-            f"curl -s {base_url} | docker compose -p infrahub -f - -f {override_file}"
-        )
+        return f"curl -s {base_url} | docker compose -p infrahub -f - -f {override_file}"
     return f"curl -s {base_url} | docker compose -p infrahub -f -"
 
 
@@ -86,9 +80,7 @@ def list_tasks(context: Context) -> None:
 
     # Get all task objects from the current module
     for name, obj in inspect.getmembers(current_module):
-        if hasattr(obj, "__wrapped__") or (
-            hasattr(obj, "__class__") and "Task" in obj.__class__.__name__
-        ):
+        if hasattr(obj, "__wrapped__") or (hasattr(obj, "__class__") and "Task" in obj.__class__.__name__):
             display_name = getattr(obj, "name", name)
             if display_name.startswith("_"):
                 continue
@@ -182,9 +174,7 @@ def start(context: Context, rebuild: bool = False) -> None:
 
     console.print("[green]✓[/green] Infrahub started successfully")
     if INFRAHUB_SERVICE_CATALOG:
-        console.print(
-            "[green]✓[/green] Service Catalog available at http://localhost:8501"
-        )
+        console.print("[green]✓[/green] Service Catalog available at http://localhost:8501")
 
 
 @task(optional=["branch"], name="bootstrap")
@@ -199,8 +189,7 @@ def demo_dc_arista(context: Context, branch: str = "add-dc3") -> None:
     console.print()
     console.print(
         Panel(
-            f"[bold cyan]Arista Data Center Demo[/bold cyan]\n"
-            f"[dim]Branch:[/dim] {branch}",
+            f"[bold cyan]Arista Data Center Demo[/bold cyan]\n[dim]Branch:[/dim] {branch}",
             border_style="cyan",
             box=box.SIMPLE,
         )
@@ -209,21 +198,13 @@ def demo_dc_arista(context: Context, branch: str = "add-dc3") -> None:
     console.print(f"\n[cyan]→[/cyan] Creating branch: [bold]{branch}[/bold]")
     context.run(f"uv run infrahubctl branch create {branch}")
 
-    console.print(
-        f"\n[cyan]→[/cyan] Loading DC Arista topology to branch: [bold]{branch}[/bold]"
-    )
-    context.run(
-        f"uv run infrahubctl object load objects/dc/dc-arista-s.yml --branch {branch}"
-    )
+    console.print(f"\n[cyan]→[/cyan] Loading DC Arista topology to branch: [bold]{branch}[/bold]")
+    context.run(f"uv run infrahubctl object load objects/dc/dc-arista-s.yml --branch {branch}")
 
-    console.print(
-        f"\n[green]✓[/green] DC Arista topology loaded to branch '[bold green]{branch}[/bold green]'"
-    )
+    console.print(f"\n[green]✓[/green] DC Arista topology loaded to branch '[bold green]{branch}[/bold green]'")
 
     # Wait for generator to finish creating the data
-    console.print(
-        "\n[yellow]→[/yellow] Waiting for generator to complete data creation..."
-    )
+    console.print("\n[yellow]→[/yellow] Waiting for generator to complete data creation...")
     wait_seconds = 60  # Wait 60 seconds for generator to process
 
     with Progress(
@@ -252,9 +233,7 @@ def demo_dc_arista(context: Context, branch: str = "add-dc3") -> None:
     console.print(
         f"\n[bright_magenta]→[/bright_magenta] Creating proposed change for branch '[bold]{branch}[/bold]'..."
     )
-    context.run(
-        f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True
-    )
+    context.run(f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True)
 
     console.print()
 
@@ -265,8 +244,7 @@ def demo_dc_juniper(context: Context, branch: str = "add-dc5") -> None:
     console.print()
     console.print(
         Panel(
-            f"[bold cyan]Juniper Data Center Demo[/bold cyan]\n"
-            f"[dim]Branch:[/dim] {branch}",
+            f"[bold cyan]Juniper Data Center Demo[/bold cyan]\n[dim]Branch:[/dim] {branch}",
             border_style="cyan",
             box=box.SIMPLE,
         )
@@ -275,21 +253,13 @@ def demo_dc_juniper(context: Context, branch: str = "add-dc5") -> None:
     console.print(f"\n[cyan]→[/cyan] Creating branch: [bold]{branch}[/bold]")
     context.run(f"uv run infrahubctl branch create {branch}")
 
-    console.print(
-        f"\n[cyan]→[/cyan] Loading DC Juniper topology to branch: [bold]{branch}[/bold]"
-    )
-    context.run(
-        f"uv run infrahubctl object load objects/dc/dc-juniper-s.yml --branch {branch}"
-    )
+    console.print(f"\n[cyan]→[/cyan] Loading DC Juniper topology to branch: [bold]{branch}[/bold]")
+    context.run(f"uv run infrahubctl object load objects/dc/dc-juniper-s.yml --branch {branch}")
 
-    console.print(
-        f"\n[green]✓[/green] DC Juniper topology loaded to branch '[bold green]{branch}[/bold green]'"
-    )
+    console.print(f"\n[green]✓[/green] DC Juniper topology loaded to branch '[bold green]{branch}[/bold green]'")
 
     # Wait for generator to finish creating the data
-    console.print(
-        "\n[yellow]→[/yellow] Waiting for generator to complete data creation..."
-    )
+    console.print("\n[yellow]→[/yellow] Waiting for generator to complete data creation...")
     wait_seconds = 60  # Wait 60 seconds for generator to process
 
     with Progress(
@@ -318,9 +288,7 @@ def demo_dc_juniper(context: Context, branch: str = "add-dc5") -> None:
     console.print(
         f"\n[bright_magenta]→[/bright_magenta] Creating proposed change for branch '[bold]{branch}[/bold]'..."
     )
-    context.run(
-        f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True
-    )
+    context.run(f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True)
 
     console.print()
 
@@ -331,8 +299,7 @@ def demo_dc_cisco(context: Context, branch: str = "add-dc2") -> None:
     console.print()
     console.print(
         Panel(
-            f"[bold cyan]Cisco Data Center Demo[/bold cyan]\n"
-            f"[dim]Branch:[/dim] {branch}",
+            f"[bold cyan]Cisco Data Center Demo[/bold cyan]\n[dim]Branch:[/dim] {branch}",
             border_style="cyan",
             box=box.SIMPLE,
         )
@@ -341,21 +308,13 @@ def demo_dc_cisco(context: Context, branch: str = "add-dc2") -> None:
     console.print(f"\n[cyan]→[/cyan] Creating branch: [bold]{branch}[/bold]")
     context.run(f"uv run infrahubctl branch create {branch}")
 
-    console.print(
-        f"\n[cyan]→[/cyan] Loading DC Cisco topology to branch: [bold]{branch}[/bold]"
-    )
-    context.run(
-        f"uv run infrahubctl object load objects/dc/dc-cisco-s.yml --branch {branch}"
-    )
+    console.print(f"\n[cyan]→[/cyan] Loading DC Cisco topology to branch: [bold]{branch}[/bold]")
+    context.run(f"uv run infrahubctl object load objects/dc/dc-cisco-s.yml --branch {branch}")
 
-    console.print(
-        f"\n[green]✓[/green] DC Cisco topology loaded to branch '[bold green]{branch}[/bold green]'"
-    )
+    console.print(f"\n[green]✓[/green] DC Cisco topology loaded to branch '[bold green]{branch}[/bold green]'")
 
     # Wait for generator to finish creating the data
-    console.print(
-        "\n[yellow]→[/yellow] Waiting for generator to complete data creation..."
-    )
+    console.print("\n[yellow]→[/yellow] Waiting for generator to complete data creation...")
     wait_seconds = 60  # Wait 60 seconds for generator to process
 
     with Progress(
@@ -384,9 +343,7 @@ def demo_dc_cisco(context: Context, branch: str = "add-dc2") -> None:
     console.print(
         f"\n[bright_magenta]→[/bright_magenta] Creating proposed change for branch '[bold]{branch}[/bold]'..."
     )
-    context.run(
-        f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True
-    )
+    context.run(f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True)
 
     console.print()
 
@@ -397,8 +354,7 @@ def demo_vpn_opsmill(context: Context, branch: str = "add-vpn-opsmill") -> None:
     console.print()
     console.print(
         Panel(
-            f"[bold cyan]OpsMill VxLAN VPN Segment Demo[/bold cyan]\n"
-            f"[dim]Branch:[/dim] {branch}",
+            f"[bold cyan]OpsMill VxLAN VPN Segment Demo[/bold cyan]\n[dim]Branch:[/dim] {branch}",
             border_style="cyan",
             box=box.SIMPLE,
         )
@@ -407,16 +363,10 @@ def demo_vpn_opsmill(context: Context, branch: str = "add-vpn-opsmill") -> None:
     console.print(f"\n[cyan]→[/cyan] Creating branch: [bold]{branch}[/bold]")
     context.run(f"uv run infrahubctl branch create {branch}")
 
-    console.print(
-        f"\n[cyan]→[/cyan] Loading OpsMill VPN segment to branch: [bold]{branch}[/bold]"
-    )
-    context.run(
-        f"uv run infrahubctl object load objects/segments/segment-opsmill.yml --branch {branch}"
-    )
+    console.print(f"\n[cyan]→[/cyan] Loading OpsMill VPN segment to branch: [bold]{branch}[/bold]")
+    context.run(f"uv run infrahubctl object load objects/segments/segment-opsmill.yml --branch {branch}")
 
-    console.print(
-        f"\n[green]✓[/green] OpsMill VPN segment loaded to branch '[bold green]{branch}[/bold green]'"
-    )
+    console.print(f"\n[green]✓[/green] OpsMill VPN segment loaded to branch '[bold green]{branch}[/bold green]'")
 
     # Wait for generator to finish creating the data
     console.print("\n[yellow]→[/yellow] Waiting for segment generator to complete...")
@@ -448,17 +398,13 @@ def demo_vpn_opsmill(context: Context, branch: str = "add-vpn-opsmill") -> None:
     console.print(
         f"\n[bright_magenta]→[/bright_magenta] Creating proposed change for branch '[bold]{branch}[/bold]'..."
     )
-    context.run(
-        f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True
-    )
+    context.run(f"uv run python scripts/create_proposed_change.py --branch {branch}", pty=True)
 
     console.print()
 
 
 @task(optional=["branch", "topology"])
-def containerlab(
-    context: Context, branch: str = "add-dc3", topology: str = "DC-3"
-) -> None:
+def containerlab(context: Context, branch: str = "add-dc3", topology: str = "DC-3") -> None:
     """Generate configs and deploy containerlab topology."""
     console.print()
     console.print(
@@ -471,15 +417,11 @@ def containerlab(
         )
     )
 
-    console.print(
-        f"\n[magenta]→[/magenta] Generating configurations from branch: [bold]{branch}[/bold]"
-    )
+    console.print(f"\n[magenta]→[/magenta] Generating configurations from branch: [bold]{branch}[/bold]")
     context.run(f"uv run scripts/get_configs.py --branch {branch}", pty=True)
 
     topology_file = f"generated-configs/clab/{topology}.clab.yml"
-    console.print(
-        f"\n[magenta]→[/magenta] Deploying containerlab topology: [bold]{topology_file}[/bold]"
-    )
+    console.print(f"\n[magenta]→[/magenta] Deploying containerlab topology: [bold]{topology_file}[/bold]")
     context.run(f"sudo -E containerlab deploy -t {topology_file}")
 
     console.print(
@@ -591,11 +533,7 @@ def init(context: Context) -> None:
         Panel(
             "[bold green]✓ Infrahub initialized successfully[/bold green]\n\n"
             "[cyan]Infrahub UI:[/cyan] http://localhost:8000\n"
-            + (
-                "[cyan]Service Catalog:[/cyan] http://localhost:8501\n"
-                if INFRAHUB_SERVICE_CATALOG
-                else ""
-            )
+            + ("[cyan]Service Catalog:[/cyan] http://localhost:8501\n" if INFRAHUB_SERVICE_CATALOG else "")
             + "[cyan]Branch:[/cyan] add-dc3",
             border_style="green",
             box=box.SIMPLE,
@@ -608,11 +546,7 @@ def init(context: Context) -> None:
 def run_tests(context: Context) -> None:
     """Run all tests."""
     console.print()
-    console.print(
-        Panel(
-            "[bold cyan]Running Tests[/bold cyan]", border_style="cyan", box=box.SIMPLE
-        )
-    )
+    console.print(Panel("[bold cyan]Running Tests[/bold cyan]", border_style="cyan", box=box.SIMPLE))
     context.run("pytest -vv tests")
     console.print("[green]✓[/green] Tests completed")
 
@@ -659,8 +593,7 @@ def lint_all(context: Context) -> None:
     console.print()
     console.print(
         Panel(
-            "[bold yellow]Running All Linters[/bold yellow]\n"
-            "[dim]Markdown → YAML → Ruff → Mypy[/dim]",
+            "[bold yellow]Running All Linters[/bold yellow]\n[dim]Markdown → YAML → Ruff → Mypy[/dim]",
             border_style="yellow",
             box=box.SIMPLE,
         )
@@ -688,8 +621,7 @@ def docs_build(context: Context) -> None:
     console.print()
     console.print(
         Panel(
-            "[bold blue]Building Documentation Website[/bold blue]\n"
-            f"[dim]Directory:[/dim] {DOCUMENTATION_DIRECTORY}",
+            f"[bold blue]Building Documentation Website[/bold blue]\n[dim]Directory:[/dim] {DOCUMENTATION_DIRECTORY}",
             border_style="blue",
             box=box.SIMPLE,
         )

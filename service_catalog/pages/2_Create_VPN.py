@@ -86,10 +86,7 @@ def initialize_segment_creation_state(form_data: Dict[str, Any]) -> None:
 
 def render_progress_tracker() -> None:
     """Render the progress tracker based on current state."""
-    if (
-        "segment_creation" not in st.session_state
-        or not st.session_state.segment_creation.get("active")
-    ):
+    if "segment_creation" not in st.session_state or not st.session_state.segment_creation.get("active"):
         return
 
     state = st.session_state.segment_creation
@@ -174,8 +171,7 @@ def execute_segment_creation_step(client: InfrahubClient) -> None:
             with st.status("Creating Proposed Change...", expanded=True) as status:
                 pc_name = f"Add Network Segment: {customer_name} in {deployment_name}"
                 pc_description = (
-                    f"Proposed change to add new network segment '{customer_name}' "
-                    f"in deployment '{deployment_name}'"
+                    f"Proposed change to add new network segment '{customer_name}' in deployment '{deployment_name}'"
                 )
                 st.write(f"Creating Proposed Change: {pc_name}")
                 pc = client.create_proposed_change(branch_name, pc_name, pc_description)
@@ -215,9 +211,7 @@ def execute_segment_creation_step(client: InfrahubClient) -> None:
         state["active"] = False
 
         if step == 1:
-            display_error(
-                "Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}"
-            )
+            display_error("Failed to create branch", f"Branch: {branch_name}\n\n{str(e)}")
         elif step == 2:
             display_error(
                 "Failed to create network segment",
@@ -254,10 +248,7 @@ def main() -> None:
     st.title("Create VPN")
 
     # Check if segment creation is in progress
-    segment_creation_active = (
-        "segment_creation" in st.session_state
-        and st.session_state.segment_creation.get("active")
-    )
+    segment_creation_active = "segment_creation" in st.session_state and st.session_state.segment_creation.get("active")
 
     if not segment_creation_active:
         st.markdown(
@@ -265,9 +256,7 @@ def main() -> None:
             "This will create a branch, add the segment, and create a proposed change for review."
         )
     else:
-        st.info(
-            "Network segment creation in progress... Form is read-only during execution."
-        )
+        st.info("Network segment creation in progress... Form is read-only during execution.")
 
     # Initialize API client
     client = InfrahubClient(
@@ -332,8 +321,7 @@ def main() -> None:
                 for d in st.session_state.deployments
             ]
             deployment_map = {
-                d.get("display_label")
-                or d.get("name", {}).get("value", "Unknown"): d.get("id")
+                d.get("display_label") or d.get("name", {}).get("value", "Unknown"): d.get("id")
                 for d in st.session_state.deployments
             }
 
@@ -356,8 +344,7 @@ def main() -> None:
                 for o in st.session_state.organizations
             ]
             owner_map = {
-                o.get("display_label")
-                or o.get("name", {}).get("value", "Unknown"): o.get("id")
+                o.get("display_label") or o.get("name", {}).get("value", "Unknown"): o.get("id")
                 for o in st.session_state.organizations
             }
 

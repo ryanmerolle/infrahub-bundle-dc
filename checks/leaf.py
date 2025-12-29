@@ -29,14 +29,10 @@ class CheckLeaf(InfrahubCheck):
         else:
             # Only check BGP redundancy if we have services
             redundant_bgp = [
-                service.get("name")
-                for service in device_services
-                if service.get("typename") == "ServiceBGP"
+                service.get("name") for service in device_services if service.get("typename") == "ServiceBGP"
             ]
             if redundant_bgp and len(redundant_bgp) < 2:
-                warnings.append(
-                    "BGP redundancy not configured - only 1 BGP service found"
-                )
+                warnings.append("BGP redundancy not configured - only 1 BGP service found")
 
         # Log warnings as info messages (log_warning doesn't exist in SDK)
         for warning in warnings:
