@@ -227,7 +227,8 @@ async def main(branch: str | None = None) -> int:
                 "  • Artifacts may have failed to generate\n\n"
                 "[cyan]Next steps:[/cyan]\n"
                 f"  • Check the branch exists: [bold]uv run infrahubctl branch list[/bold]\n"
-                f'  • Run the generator: [bold]uv run infrahubctl generator create_dc --branch {branch_name} name="<topology-name>"[/bold]\n'
+                f"  • Run the generator: [bold]uv run infrahubctl generator create_dc "
+                f'--branch {branch_name} name="<topology-name>"[/bold]\n'
                 "  • Check Infrahub logs for errors",
                 title="[bold red]Error[/bold red]",
                 border_style="red",

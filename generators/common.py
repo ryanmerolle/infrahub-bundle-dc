@@ -1004,8 +1004,9 @@ class TopologyCreator:
                     data_list=console_interface_data_list,
                     allow_upsert=True,
                 )
+                device_name = device.name.value if hasattr(device, "name") else device.id
                 self.log.info(
-                    f"Created {len(console_interface_data_list)} console interfaces for {device.name.value if hasattr(device, 'name') else device.id}"
+                    f"Created {len(console_interface_data_list)} console interfaces for {device_name}"
                 )
 
             # Create physical interfaces in batch
@@ -1015,8 +1016,9 @@ class TopologyCreator:
                     data_list=physical_interface_data_list,
                     allow_upsert=True,
                 )
+                device_name = device.name.value if hasattr(device, "name") else device.id
                 self.log.info(
-                    f"Created {len(physical_interface_data_list)} physical interfaces for {device.name.value if hasattr(device, 'name') else device.id}"
+                    f"Created {len(physical_interface_data_list)} physical interfaces for {device_name}"
                 )
 
     def _get_device_template_name(self, device: Any) -> str | None:

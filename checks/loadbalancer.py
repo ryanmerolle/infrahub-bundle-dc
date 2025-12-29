@@ -56,7 +56,8 @@ class CheckLoadBalancer(InfrahubCheck):
                     errors.append(f"VIP service '{service_name}' has invalid IP configuration")
                 if backend_servers == 0:
                     errors.append(
-                        f"Load balancer '{device_name}' has {vip_services_count} VIP service(s) but no backend servers configured yet"
+                        f"Load balancer '{device_name}' has {vip_services_count} VIP service(s) "
+                        "but no backend servers configured yet"
                     )
                 elif backend_servers < 2:
                     errors.append(

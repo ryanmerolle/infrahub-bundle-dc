@@ -345,7 +345,8 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
             # Step 4: Create proposed change
             with st.status("Creating Proposed Change...", expanded=True) as status:
                 pc_name = f"Add Data Center: {dc_name}"
-                pc_description = f"Proposed change to add new data center {dc_name} in {form_data.get('location_name', form_data['location'])}"
+                location = form_data.get("location_name", form_data["location"])
+                pc_description = f"Proposed change to add new data center {dc_name} in {location}"
                 st.write(f"Creating Proposed Change: {pc_name}")
                 pc = client.create_proposed_change(branch_name, pc_name, pc_description)
                 pc_id = pc["id"]

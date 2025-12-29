@@ -275,9 +275,13 @@ async def find_permission_by_identifier(client: InfrahubClient, identifier: str)
         decision_value = decision_map.get(decision_str, 6)  # Convert to int
 
         # Build GraphQL query to find object permission by namespace, name, action, and decision
+        filters = (
+            f'namespace__value: "{namespace}", name__value: "{name}", '
+            f'action__value: "{action}", decision__value: {decision_value}'
+        )
         query = f"""
         query {{
-          {kind}(namespace__value: "{namespace}", name__value: "{name}", action__value: "{action}", decision__value: {decision_value}) {{
+          {kind}({filters}) {{
             edges {{
               node {{
                 id
