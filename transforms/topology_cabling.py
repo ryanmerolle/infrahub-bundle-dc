@@ -9,15 +9,13 @@ class TopologyCabling(InfrahubTransform):
         csv_rows = []
 
         # Add CSV header with cable details
-        csv_rows.append(
-            "Source Device,Source Interface,Remote Device,Remote Interface,Cable Type,Cable Status,Cable Color,Cable Label"
-        )
+        header = "Source Device,Source Interface,Remote Device,Remote Interface,"
+        header += "Cable Type,Cable Status,Cable Color,Cable Label"
+        csv_rows.append(header)
 
         seen_connections = set()  # Track connections we've already processed
 
-        for device in data["TopologyDataCenter"]["edges"][0]["node"]["devices"][
-            "edges"
-        ]:
+        for device in data["TopologyDataCenter"]["edges"][0]["node"]["devices"]["edges"]:
             source_device = device["node"]["name"]["value"]
 
             for interface in device["node"]["interfaces"]["edges"]:

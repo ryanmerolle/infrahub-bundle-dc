@@ -5,7 +5,6 @@ It uses st.navigation to create a hierarchical menu structure.
 """
 
 import streamlit as st  # type: ignore[import-untyped]
-
 from utils import display_logo
 
 # Configure page layout - must be first Streamlit command

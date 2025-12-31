@@ -65,10 +65,10 @@ class PopTopologyGenerator(InfrahubGenerator):
         # Initialize the TopologyCreator with our context
         # This class orchestrates all infrastructure creation operations
         network_creator = TopologyCreator(
-            client=self.client,      # Infrahub API client for creating objects
-            log=self.logger,         # Logger for progress and debug output
-            branch=self.branch,      # Branch for isolated changes (e.g., feature branch)
-            data=data                # Cleaned topology data with design elements
+            client=self.client,  # Infrahub API client for creating objects
+            log=self.logger,  # Logger for progress and debug output
+            branch=self.branch,  # Branch for isolated changes (e.g., feature branch)
+            data=data,  # Cleaned topology data with design elements
         )
 
         # Load and prepare topology data:

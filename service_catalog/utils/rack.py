@@ -5,9 +5,7 @@ from typing import Any, Dict, List, Optional
 from .ui import get_device_color, truncate_device_name
 
 
-def create_rack_unit_map(
-    rack_height: int, devices: List[Dict[str, Any]]
-) -> Dict[int, Optional[Dict[str, Any]]]:
+def create_rack_unit_map(rack_height: int, devices: List[Dict[str, Any]]) -> Dict[int, Optional[Dict[str, Any]]]:
     """Create a map of rack units to devices.
 
     Maps each rack unit (1 to rack_height) to either a device occupying that unit
@@ -41,15 +39,10 @@ def create_rack_unit_map(
         }
     """
     # Initialize all rack units as empty
-    rack_units: Dict[int, Optional[Dict[str, Any]]] = {
-        unit: None for unit in range(1, rack_height + 1)
-    }
+    rack_units: Dict[int, Optional[Dict[str, Any]]] = {unit: None for unit in range(1, rack_height + 1)}
 
     # Sort devices by position to handle overlaps consistently
-    sorted_devices = sorted(
-        devices,
-        key=lambda d: d.get("position", {}).get("value", 0) or 0
-    )
+    sorted_devices = sorted(devices, key=lambda d: d.get("position", {}).get("value", 0) or 0)
 
     for device in sorted_devices:
         position_value = device.get("position", {}).get("value")
@@ -105,8 +98,13 @@ def create_rack_unit_map(
     return rack_units
 
 
-
-def generate_rack_html(rack: Dict[str, Any], devices: List[Dict[str, Any]], base_url: str = "http://localhost:8000", branch: str = "main", label_mode: str = "Hostname") -> str:
+def generate_rack_html(
+    rack: Dict[str, Any],
+    devices: List[Dict[str, Any]],
+    base_url: str = "http://localhost:8000",
+    branch: str = "main",
+    label_mode: str = "Hostname",
+) -> str:
     """Generate HTML for rack diagram visualization.
 
     Creates a NetBox-style rack diagram with numbered units and positioned devices.
@@ -151,7 +149,11 @@ def generate_rack_html(rack: Dict[str, Any], devices: List[Dict[str, Any]], base
 
 
 def generate_rack_units_html(
-    rack_units: Dict[int, Optional[Dict[str, Any]]], rack_height: int, base_url: str, branch: str, label_mode: str = "Hostname"
+    rack_units: Dict[int, Optional[Dict[str, Any]]],
+    rack_height: int,
+    base_url: str,
+    branch: str,
+    label_mode: str = "Hostname",
 ) -> str:
     """Generate HTML for all rack units.
 
@@ -204,7 +206,13 @@ def _generate_empty_unit_html(unit_num: int) -> str:
 </div>"""
 
 
-def _generate_device_html(unit_info: Dict[str, Any], unit_num: int, base_url: str, branch: str, label_mode: str = "Hostname") -> str:
+def _generate_device_html(
+    unit_info: Dict[str, Any],
+    unit_num: int,
+    base_url: str,
+    branch: str,
+    label_mode: str = "Hostname",
+) -> str:
     """Generate HTML for a device in the rack.
 
     Args:
@@ -248,10 +256,14 @@ def _generate_device_html(unit_info: Dict[str, Any], unit_num: int, base_url: st
         if label_mode == "Device Type":
             # If showing device type, show hostname as secondary info
             secondary_text = truncate_device_name(device_name, 18)
-            device_content = f'<div class="device-name">{display_text}</div><div class="device-type-label">{secondary_text}</div>'
+            device_content = (
+                f'<div class="device-name">{display_text}</div><div class="device-type-label">{secondary_text}</div>'
+            )
         else:
             # If showing hostname, show device type as secondary info (if available)
-            device_type_html = f'<div class="device-type-label">{truncate_device_name(device_type, 18)}</div>' if device_type else ''
+            device_type_html = (
+                f'<div class="device-type-label">{truncate_device_name(device_type, 18)}</div>' if device_type else ""
+            )
             device_content = f'<div class="device-name">{display_text}</div>{device_type_html}'
 
     # Generate device HTML with clickable link

@@ -91,9 +91,7 @@ class NetworkSegmentGenerator(InfrahubGenerator):
             )
             return
 
-        self.logger.info(
-            f"Found {len(leaf_devices)} leaf devices for VxLAN configuration"
-        )
+        self.logger.info(f"Found {len(leaf_devices)} leaf devices for VxLAN configuration")
 
         # Associate segment with customer interfaces on leaf devices
         await self._associate_interfaces_with_segment(
@@ -164,17 +162,13 @@ class NetworkSegmentGenerator(InfrahubGenerator):
 
             for interface in interfaces:
                 interface_ids.append(interface.id)
-                self.logger.info(
-                    f"  Adding interface {interface.name.value} on {device_name} to segment"
-                )
+                self.logger.info(f"  Adding interface {interface.name.value} on {device_name} to segment")
 
         if interface_ids:
             # Update segment with interface associations
             segment.interfaces.add(interface_ids)
             await segment.save()
-            self.logger.info(
-                f"Associated {len(interface_ids)} interfaces with segment {segment_name}"
-            )
+            self.logger.info(f"Associated {len(interface_ids)} interfaces with segment {segment_name}")
         else:
             self.logger.info(f"No customer interfaces found for segment {segment_name}")
 
@@ -202,25 +196,14 @@ class NetworkSegmentGenerator(InfrahubGenerator):
         for device in leaf_devices:
             device_name = device.get("name", "unknown")
 
-            self.logger.info(
-                f"  VxLAN config on {device_name}: "
-                f"VLAN {vlan_id} -> VNI {vni} (RD: {rd})"
-            )
+            self.logger.info(f"  VxLAN config on {device_name}: VLAN {vlan_id} -> VNI {vni} (RD: {rd})")
 
             if segment_type == "l3_gateway":
-                self.logger.info(
-                    f"    L3 Gateway: SVI for VLAN {vlan_id} on {device_name}"
-                )
+                self.logger.info(f"    L3 Gateway: SVI for VLAN {vlan_id} on {device_name}")
             elif segment_type == "l3_vrf":
-                self.logger.info(
-                    f"    L3 VRF: VRF instance for segment on {device_name}"
-                )
+                self.logger.info(f"    L3 VRF: VRF instance for segment on {device_name}")
 
             if external_routing:
-                self.logger.info(
-                    f"    External routing: Advertising VNI {vni} to external peers"
-                )
+                self.logger.info(f"    External routing: Advertising VNI {vni} to external peers")
 
-        self.logger.info(
-            f"VxLAN configuration complete for segment {segment_name}"
-        )
+        self.logger.info(f"VxLAN configuration complete for segment {segment_name}")

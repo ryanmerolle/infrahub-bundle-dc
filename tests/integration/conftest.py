@@ -18,9 +18,7 @@ class TestInfrahubDockerWithClient(TestInfrahubDocker):
     """Base test class with Infrahub Docker container and clients."""
 
     @pytest.fixture(scope="class")
-    def async_client_main(
-        self, infrahub_port: int
-    ) -> Generator[InfrahubClient, None, None]:
+    def async_client_main(self, infrahub_port: int) -> Generator[InfrahubClient, None, None]:
         """Async Infrahub client on main branch.
 
         Yields:
@@ -34,9 +32,7 @@ class TestInfrahubDockerWithClient(TestInfrahubDocker):
         yield client
 
     @pytest.fixture(scope="class")
-    def client_main(
-        self, infrahub_port: int
-    ) -> Generator[InfrahubClientSync, None, None]:
+    def client_main(self, infrahub_port: int) -> Generator[InfrahubClientSync, None, None]:
         """Sync Infrahub client on main branch.
 
         Yields:
@@ -50,9 +46,7 @@ class TestInfrahubDockerWithClient(TestInfrahubDocker):
         yield client
 
     @pytest.fixture(scope="class")
-    def client(
-        self, infrahub_port: int, default_branch: str
-    ) -> Generator[InfrahubClientSync, None, None]:
+    def client(self, infrahub_port: int, default_branch: str) -> Generator[InfrahubClientSync, None, None]:
         """Sync Infrahub client on the default test branch.
 
         Creates the branch if it doesn't exist and sets it as default.
@@ -74,22 +68,28 @@ class TestInfrahubDockerWithClient(TestInfrahubDocker):
 
     @staticmethod
     def execute_command(
-        command: str, address: str
+        command: str,
+        address: str,
+        concurrent_execution: int = 10,
+        pagination_size: int = 50,
     ) -> subprocess.CompletedProcess[str]:
         """Execute a shell command with Infrahub environment variables.
 
         Args:
             command: The shell command to execute.
             address: The Infrahub server address.
+            concurrent_execution: Concurrent execution limit (unused, for compatibility).
+            pagination_size: Pagination size (unused, for compatibility).
 
         Returns:
             CompletedProcess with stdout, stderr, and returncode.
         """
+        # Note: concurrent_execution and pagination_size are accepted for API
+        # compatibility but not used in this implementation
+        _ = concurrent_execution, pagination_size
         env = os.environ.copy()
         env["INFRAHUB_ADDRESS"] = address
-        env["INFRAHUB_API_TOKEN"] = PROJECT_ENV_VARIABLES[
-            "INFRAHUB_TESTING_INITIAL_ADMIN_TOKEN"
-        ]
+        env["INFRAHUB_API_TOKEN"] = PROJECT_ENV_VARIABLES["INFRAHUB_TESTING_INITIAL_ADMIN_TOKEN"]
         env["INFRAHUB_MAX_CONCURRENT_EXECUTION"] = "10"
 
         result = subprocess.run(

@@ -60,18 +60,18 @@ import sys
 import time
 
 import requests
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import (
+    BarColumn,
     Progress,
     SpinnerColumn,
     TextColumn,
-    BarColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
 from rich.rule import Rule
-from rich import box
 
 # ============================================================================
 # CONFIGURATION AND SETUP
@@ -179,9 +179,7 @@ def check_infrahub_ready(max_retries: int = 30, sleep_time: int = 2) -> bool:
     return False
 
 
-def run_command(
-    command: str, description: str, step: str, color: str = "cyan", icon: str = ""
-) -> bool:
+def run_command(command: str, description: str, step: str, color: str = "cyan", icon: str = "") -> bool:
     """
     Execute a shell command with visual feedback and error handling.
 
@@ -230,15 +228,13 @@ def run_command(
         subprocess.run(command, shell=True, check=True, capture_output=False, text=True)
 
         # Command succeeded - display success message
-        console.print(
-            f"[bold bright_green on black]✓[/bold bright_green on black] {icon_display}[bold {color}]{description} completed[/bold {color}]"
-        )
+        msg = "[bold bright_green on black]✓[/bold bright_green on black] "
+        msg += f"{icon_display}[bold {color}]{description} completed[/bold {color}]"
+        console.print(msg)
         return True
     except subprocess.CalledProcessError as e:
         # Command failed - display error message
-        console.print(
-            f"[bold red]✗[/bold red] {icon_display}[red]Failed: {description}[/red]"
-        )
+        console.print(f"[bold red]✗[/bold red] {icon_display}[red]Failed: {description}[/red]")
         console.print(f"[dim]Error: {e}[/dim]")
         return False
 
@@ -298,9 +294,9 @@ def wait_for_repository_sync(seconds: int = 120) -> None:
             time.sleep(1)
             progress.update(task, advance=1)
 
-    console.print(
-        "[bold bright_green on black]✓[/bold bright_green on black] 🔄 [bold bright_yellow]Repository sync complete[/bold bright_yellow]\n"
-    )
+    msg = "[bold bright_green on black]✓[/bold bright_green on black] "
+    msg += "🔄 [bold bright_yellow]Repository sync complete[/bold bright_yellow]\n"
+    console.print(msg)
 
 
 def main(branch: str = "main") -> int:
@@ -461,9 +457,9 @@ def main(branch: str = "main") -> int:
     # Python generators and transforms needed for topology creation and
     # configuration generation. This step may fail gracefully if the repository
     # already exists from a previous bootstrap run.
-    console.print(
-        "\n[bold bright_magenta on black][6/7][/bold bright_magenta on black] 📚 [bold white]Adding bundle-dc repository[/bold white]"
-    )
+    msg = "\n[bold bright_magenta on black][6/7][/bold bright_magenta on black] "
+    msg += "📚 [bold white]Adding bundle-dc repository[/bold white]"
+    console.print(msg)
 
     # Choose repository source based on INFRAHUB_GIT_LOCAL environment variable
     # Local mode: Uses /upstream mount for development (requires docker-compose.override.yml)
@@ -486,21 +482,16 @@ def main(branch: str = "main") -> int:
 
     # Handle repository addition result with graceful failure for duplicates
     if result.returncode == 0:
-        console.print(
-            "[bold bright_green on black]✓[/bold bright_green on black] 📚 [bold bright_magenta]Repository added[/bold bright_magenta]"
-        )
+        msg = "[bold bright_green on black]✓[/bold bright_green on black] "
+        msg += "📚 [bold bright_magenta]Repository added[/bold bright_magenta]"
+        console.print(msg)
     else:
-        if (
-            "already exists" in result.stderr.lower()
-            or "already exists" in result.stdout.lower()
-        ):
-            console.print(
-                "[bold yellow on black]⚠[/bold yellow on black] 📚 [bold bright_magenta]Repository already exists, skipping...[/bold bright_magenta]"
-            )
+        if "already exists" in result.stderr.lower() or "already exists" in result.stdout.lower():
+            msg = "[bold yellow on black]⚠[/bold yellow on black] "
+            msg += "📚 [bold bright_magenta]Repository already exists, skipping...[/bold bright_magenta]"
+            console.print(msg)
         else:
-            console.print(
-                "[bold red]✗[/bold red] 📚 [red]Failed to add repository[/red]"
-            )
+            console.print("[bold red]✗[/bold red] 📚 [red]Failed to add repository[/red]")
             console.print(f"[dim]{result.stderr}[/dim]")
 
     console.print(Rule(style="dim bright_magenta"))
@@ -524,7 +515,9 @@ def main(branch: str = "main") -> int:
     # Event actions define automated triggers and responses in Infrahub.
     # This step is optional because it may fail if the repository hasn't
     # fully synced yet. Users can manually load event actions later if needed.
-    console.print("\n[bold bright_cyan on black][7/7][/bold bright_cyan on black] ⚡ [bold white]Loading event actions (optional)[/bold white]")
+    msg = "\n[bold bright_cyan on black][7/7][/bold bright_cyan on black] "
+    msg += "⚡ [bold white]Loading event actions (optional)[/bold white]"
+    console.print(msg)
     events_loaded = run_command(
         f"uv run infrahubctl object load objects/events/ --branch {branch}",
         "Event actions loading",
@@ -534,9 +527,9 @@ def main(branch: str = "main") -> int:
     )
 
     if not events_loaded:
-        console.print(
-            "[bold yellow on black]⚠[/bold yellow on black] ⚡ [bold bright_cyan]Event actions skipped (repository may need time to sync)[/bold bright_cyan]"
-        )
+        msg = "[bold yellow on black]⚠[/bold yellow on black] "
+        msg += "⚡ [bold bright_cyan]Event actions skipped (repository may need time to sync)[/bold bright_cyan]"
+        console.print(msg)
         console.print(
             "[dim]Event actions can be loaded later with:[/dim]\n"
             f"  [bold]uv run infrahubctl object load objects/events/ --branch {branch}[/bold]"
@@ -571,9 +564,7 @@ def main(branch: str = "main") -> int:
 
 if __name__ == "__main__":
     # Set up argument parser for command-line options
-    parser = argparse.ArgumentParser(
-        description="Bootstrap Infrahub with schemas, data, and configurations"
-    )
+    parser = argparse.ArgumentParser(description="Bootstrap Infrahub with schemas, data, and configurations")
 
     # Add --branch argument to allow targeting specific Infrahub branches
     # Default is "main" branch, but users can specify development branches

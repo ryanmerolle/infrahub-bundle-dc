@@ -74,35 +74,27 @@ class DCTopologyCreator(TopologyCreator):
         # ========================================
         # Spine interfaces facing leaf devices (role="leaf" on spine)
         spines_leaves = {
-            name: safe_sort_interface_list(
-                [iface.get("name") for iface in ifaces if iface.get("role") == "leaf"]
-            )
+            name: safe_sort_interface_list([iface.get("name") for iface in ifaces if iface.get("role") == "leaf"])
             for name, ifaces in interfaces.items()
             if "spine" in name
         }
         # Spine interfaces facing border leaf devices (role="uplink" on spine for borders)
         spine_borders = {
-            name: safe_sort_interface_list(
-                [iface.get("name") for iface in ifaces if iface.get("role") == "uplink"]
-            )
+            name: safe_sort_interface_list([iface.get("name") for iface in ifaces if iface.get("role") == "uplink"])
             for name, ifaces in interfaces.items()
             if "spine" in name
         }
 
         # Leaf uplink interfaces (facing spine)
         leafs = {
-            name: safe_sort_interface_list(
-                [iface.get("name") for iface in ifaces if iface.get("role") == "uplink"]
-            )
+            name: safe_sort_interface_list([iface.get("name") for iface in ifaces if iface.get("role") == "uplink"])
             for name, ifaces in interfaces.items()
             if "leaf" in name and "border" not in name
         }
 
         # Border leaf uplink interfaces (facing spine)
         border_leafs = {
-            name: safe_sort_interface_list(
-                [iface.get("name") for iface in ifaces if iface.get("role") == "uplink"]
-            )
+            name: safe_sort_interface_list([iface.get("name") for iface in ifaces if iface.get("role") == "uplink"])
             for name, ifaces in interfaces.items()
             if "border_leaf" in name
         }
@@ -159,16 +151,12 @@ class DCTopologyCreator(TopologyCreator):
 
             # Configure source interface
             source_endpoint.status.value = "active"
-            source_endpoint.description.value = (
-                f"Peering connection to {' -> '.join(target_endpoint.hfid or [])}"
-            )
+            source_endpoint.description.value = f"Peering connection to {' -> '.join(target_endpoint.hfid or [])}"
             source_endpoint.role.value = interface_role
 
             # Configure target interface
             target_endpoint.status.value = "active"
-            target_endpoint.description.value = (
-                f"Peering connection to {' -> '.join(source_endpoint.hfid or [])}"
-            )
+            target_endpoint.description.value = f"Peering connection to {' -> '.join(source_endpoint.hfid or [])}"
             target_endpoint.role.value = interface_role
 
             # Create cable object connecting both endpoints
@@ -187,28 +175,22 @@ class DCTopologyCreator(TopologyCreator):
 
             # Set bidirectional connector relationship
             # This allows queries to traverse: interface → connector → cable → connected_endpoints
-            source_endpoint.connector = cable.id
-            target_endpoint.connector = cable.id
+            # After save(), cable.id is guaranteed to be set
+            if cable.id is not None:
+                source_endpoint.connector = cable.id
+                target_endpoint.connector = cable.id
 
             # Queue interface saves for batch
-            batch.add(
-                task=source_endpoint.save, allow_upsert=True, node=source_endpoint
-            )
-            batch.add(
-                task=target_endpoint.save, allow_upsert=True, node=target_endpoint
-            )
+            batch.add(task=source_endpoint.save, allow_upsert=True, node=source_endpoint)
+            batch.add(task=target_endpoint.save, allow_upsert=True, node=target_endpoint)
 
         # Execute batch and log results
         async for node, _ in batch.execute():
-            hfid_str = ' -> '.join(node.hfid) if isinstance(node.hfid, list) else str(node.hfid)
+            hfid_str = " -> ".join(node.hfid) if isinstance(node.hfid, list) else str(node.hfid)
             if hasattr(node, "description"):
-                self.log.info(
-                    f"- Created/Updated [{node.get_kind()}] {node.description.value} from {hfid_str}"
-                )
+                self.log.info(f"- Created/Updated [{node.get_kind()}] {node.description.value} from {hfid_str}")
             else:
-                self.log.info(
-                    f"- Created/Updated [{node.get_kind()}] from {hfid_str}"
-                )
+                self.log.info(f"- Created/Updated [{node.get_kind()}] from {hfid_str}")
 
     # ============================================================================
     # Routing Protocol Configuration - OSPF Underlay
@@ -304,9 +286,7 @@ class DCTopologyCreator(TopologyCreator):
         if not topology_name:
             raise ValueError("Topology name is required")
 
-        self.log.info(
-            f"Creating BGP peer groups for {topology_name} ({scenario} scenario)"
-        )
+        self.log.info(f"Creating BGP peer groups for {topology_name} ({scenario} scenario)")
 
         # ========================================
         # Underlay peer groups (eBGP scenario only)
@@ -406,9 +386,7 @@ class DCTopologyCreator(TopologyCreator):
             scenario: Either "ebgp" or "ospf"
         """
         topology_name = self.data.get("name")
-        self.log.info(
-            f"Creating autonomous systems for {topology_name} (scenario: {scenario})"
-        )
+        self.log.info(f"Creating autonomous systems for {topology_name} (scenario: {scenario})")
 
         # Get the PRIVATE-ASN4 pool (4-byte private ASNs: 4200000000-4294967294)
         asn_pool = await self.client.get(
@@ -428,18 +406,17 @@ class DCTopologyCreator(TopologyCreator):
                         "status": "active",
                         "description": f"{topology_name} SPINES ASN for eBGP UNDERLAY",
                         "location": self.client.store.get(
-                            kind="LocationBuilding", key=self.data["name"], branch=self.branch),
+                            kind="LocationBuilding",
+                            key=self.data["name"],
+                            branch=self.branch,
+                        ),
                     },
                     "store_key": f"SPINE-ASN-{topology_name}",
                 },
             )
 
             # Create leaf ASNs (one per leaf and border_leaf for maximum flexibility)
-            leaf_devices = [
-                device
-                for device in self.devices
-                if device.role.value in ["leaf", "border_leaf"]
-            ]
+            leaf_devices = [device for device in self.devices if device.role.value in ["leaf", "border_leaf"]]
             for device in leaf_devices:
                 await self._create(
                     kind="RoutingAutonomousSystem",
@@ -449,7 +426,10 @@ class DCTopologyCreator(TopologyCreator):
                             "status": "active",
                             "description": f"{topology_name} {device.name.value} ASN for eBGP UNDERLAY",
                             "location": self.client.store.get(
-                                kind="LocationBuilding", key=self.data["name"], branch=self.branch),
+                                kind="LocationBuilding",
+                                key=self.data["name"],
+                                branch=self.branch,
+                            ),
                         },
                         "store_key": f"LEAF-ASN-{device.name.value}",
                     },
@@ -464,7 +444,10 @@ class DCTopologyCreator(TopologyCreator):
                         "status": "active",
                         "description": f"{topology_name} OVERLAY ASN for iBGP EVPN over eBGP UNDERLAY",
                         "location": self.client.store.get(
-                            kind="LocationBuilding", key=self.data["name"], branch=self.branch),
+                            kind="LocationBuilding",
+                            key=self.data["name"],
+                            branch=self.branch,
+                        ),
                     },
                     "store_key": f"OVERLAY-ASN-{topology_name}",
                 },
@@ -479,7 +462,10 @@ class DCTopologyCreator(TopologyCreator):
                         "status": "active",
                         "description": f"{topology_name} OVERLAY ASN for iBGP EVPN over OSPF UNDERLAY",
                         "location": self.client.store.get(
-                            kind="LocationBuilding", key=self.data["name"], branch=self.branch),
+                            kind="LocationBuilding",
+                            key=self.data["name"],
+                            branch=self.branch,
+                        ),
                     },
                     "store_key": f"OVERLAY-ASN-{topology_name}",
                 },
@@ -501,30 +487,26 @@ class DCTopologyCreator(TopologyCreator):
             loopback_name: Loopback interface name (typically "loopback0")
         """
         topology_name = self.data.get("name")
-        self.log.info(
-            f"Creating eBGP UNDERLAY for {topology_name} (interface-based peering)"
-        )
+        self.log.info(f"Creating eBGP UNDERLAY for {topology_name} (interface-based peering)")
 
         # Get peer groups created in create_bgp_peer_groups()
         server_pg = self.client.store.get(
-            kind="RoutingBGPPeerGroup", key=f"SPINE-TO-LEAF-UNDERLAY-PG-{topology_name}", branch=self.branch
+            kind="RoutingBGPPeerGroup",
+            key=f"SPINE-TO-LEAF-UNDERLAY-PG-{topology_name}",
+            branch=self.branch,
         )
 
         # Get all ASNs for spines and leaves
         spine_asn_obj = self.client.store.get(
-            kind="RoutingAutonomousSystem", key=f"SPINE-ASN-{topology_name}", branch=self.branch
+            kind="RoutingAutonomousSystem",
+            key=f"SPINE-ASN-{topology_name}",
+            branch=self.branch,
         )
         spine_asn = spine_asn_obj.id if spine_asn_obj else None
 
         # Build device lists
-        leaf_devices = [
-            device
-            for device in self.devices
-            if device.role.value in ["leaf", "border_leaf"]
-        ]
-        spine_devices = [
-            device for device in self.devices if device.role.value == "spine"
-        ]
+        leaf_devices = [device for device in self.devices if device.role.value in ["leaf", "border_leaf"]]
+        spine_devices = [device for device in self.devices if device.role.value == "spine"]
 
         # Create BGP sessions batch - ONLY spine-to-leaf sessions (unidirectional)
         batch = await self.client.create_batch()
@@ -534,11 +516,11 @@ class DCTopologyCreator(TopologyCreator):
             for leaf_device in leaf_devices:
                 leaf_asn_obj = self.client.store.get(
                     kind="RoutingAutonomousSystem",
-                    key=f"LEAF-ASN-{leaf_device.name.value}", branch=self.branch)
-                leaf_asn = leaf_asn_obj.id if leaf_asn_obj else None
-                session_name = (
-                    f"{spine_device.name.value}-{leaf_device.name.value}".upper()
+                    key=f"LEAF-ASN-{leaf_device.name.value}",
+                    branch=self.branch,
                 )
+                leaf_asn = leaf_asn_obj.id if leaf_asn_obj else None
+                session_name = f"{spine_device.name.value}-{leaf_device.name.value}".upper()
 
                 spine_bgp_data = {
                     "name": session_name,
@@ -548,17 +530,23 @@ class DCTopologyCreator(TopologyCreator):
                     "remote_as": leaf_asn,
                     "router_id": self.client.store.get(
                         key=f"{spine_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "local_ip": self.client.store.get(
                         key=f"{spine_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "remote_ip": self.client.store.get(
                         key=f"{leaf_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     # Associate with unnumbered interfaces like OSPF does
@@ -575,21 +563,19 @@ class DCTopologyCreator(TopologyCreator):
                 else:
                     spine_bgp_data["role"] = "peering"
 
-                spine_bgp = await self.client.create(
-                    kind="ServiceBGP", data=spine_bgp_data
-                )
+                spine_bgp = await self.client.create(kind="ServiceBGP", data=spine_bgp_data)
                 batch.add(task=spine_bgp.save, allow_upsert=True, node=spine_bgp)
 
         # Create leaf BGP sessions (one session per leaf-spine pair on leaf)
         for leaf_device in leaf_devices:
             leaf_asn_obj = self.client.store.get(
-                kind="RoutingAutonomousSystem", key=f"LEAF-ASN-{leaf_device.name.value}", branch=self.branch
+                kind="RoutingAutonomousSystem",
+                key=f"LEAF-ASN-{leaf_device.name.value}",
+                branch=self.branch,
             )
             leaf_asn = leaf_asn_obj.id if leaf_asn_obj else None
             for spine_device in spine_devices:
-                session_name = (
-                    f"{leaf_device.name.value}-{spine_device.name.value}".upper()
-                )
+                session_name = f"{leaf_device.name.value}-{spine_device.name.value}".upper()
 
                 leaf_bgp_data = {
                     "name": session_name,
@@ -599,17 +585,23 @@ class DCTopologyCreator(TopologyCreator):
                     "remote_as": spine_asn,
                     "router_id": self.client.store.get(
                         key=f"{leaf_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "local_ip": self.client.store.get(
                         key=f"{leaf_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "remote_ip": self.client.store.get(
                         key=f"{spine_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     # Associate with unnumbered interfaces like OSPF does
@@ -625,26 +617,22 @@ class DCTopologyCreator(TopologyCreator):
                 # Get client peer group for leaves
                 client_pg = self.client.store.get(
                     kind="RoutingBGPPeerGroup",
-                    key=f"LEAF-TO-SPINE-UNDERLAY-PG-{topology_name}", branch=self.branch)
+                    key=f"LEAF-TO-SPINE-UNDERLAY-PG-{topology_name}",
+                    branch=self.branch,
+                )
                 if client_pg:
                     leaf_bgp_data["peer_group"] = client_pg.id
                 else:
                     leaf_bgp_data["role"] = "peering"
 
-                leaf_bgp = await self.client.create(
-                    kind="ServiceBGP", data=leaf_bgp_data
-                )
+                leaf_bgp = await self.client.create(kind="ServiceBGP", data=leaf_bgp_data)
                 batch.add(task=leaf_bgp.save, allow_upsert=True, node=leaf_bgp)
 
         # Execute the batch
         async for node, _ in batch.execute():
-            self.log.info(
-                f"- Created [{node.get_kind()}] {node.name.value} (eBGP underlay)"
-            )
+            self.log.info(f"- Created [{node.get_kind()}] {node.name.value} (eBGP underlay)")
 
-    async def create_ibgp_overlay(
-        self, loopback_name: str, session_type: str = "overlay"
-    ) -> None:
+    async def create_ibgp_overlay(self, loopback_name: str, session_type: str = "overlay") -> None:
         """Create iBGP EVPN overlay sessions for VXLAN control plane.
 
         Creates full mesh of iBGP sessions using route reflection:
@@ -662,27 +650,27 @@ class DCTopologyCreator(TopologyCreator):
 
         # Get the shared overlay ASN (all devices use same ASN for iBGP)
         overlay_asn = self.client.store.get(
-            kind="RoutingAutonomousSystem", key=f"OVERLAY-ASN-{topology_name}", branch=self.branch
+            kind="RoutingAutonomousSystem",
+            key=f"OVERLAY-ASN-{topology_name}",
+            branch=self.branch,
         )
         asn_id = overlay_asn.id if overlay_asn else None
 
         # Get peer groups
         client_pg = self.client.store.get(
-            kind="RoutingBGPPeerGroup", key=f"RR-CLIENTS-OVERLAY-PG-{topology_name}", branch=self.branch
+            kind="RoutingBGPPeerGroup",
+            key=f"RR-CLIENTS-OVERLAY-PG-{topology_name}",
+            branch=self.branch,
         )
         server_pg = self.client.store.get(
-            kind="RoutingBGPPeerGroup", key=f"RR-SERVERS-OVERLAY-PG-{topology_name}", branch=self.branch
+            kind="RoutingBGPPeerGroup",
+            key=f"RR-SERVERS-OVERLAY-PG-{topology_name}",
+            branch=self.branch,
         )
 
         # Filter devices by role
-        leaf_devices = [
-            device
-            for device in self.devices
-            if device.role.value in ["leaf", "border_leaf"]
-        ]
-        spine_devices = [
-            device for device in self.devices if device.role.value == "spine"
-        ]
+        leaf_devices = [device for device in self.devices if device.role.value in ["leaf", "border_leaf"]]
+        spine_devices = [device for device in self.devices if device.role.value == "spine"]
 
         # Create BGP sessions batch
         batch = await self.client.create_batch()
@@ -690,9 +678,7 @@ class DCTopologyCreator(TopologyCreator):
         # Create spine-to-leaf sessions (RR server to clients)
         for spine_device in spine_devices:
             for leaf_device in leaf_devices:
-                session_name = (
-                    f"{spine_device.name.value}-{leaf_device.name.value}-EVPN".upper()
-                )
+                session_name = f"{spine_device.name.value}-{leaf_device.name.value}-EVPN".upper()
 
                 spine_bgp_data = {
                     "name": session_name,
@@ -702,17 +688,23 @@ class DCTopologyCreator(TopologyCreator):
                     "remote_as": asn_id,
                     "router_id": self.client.store.get(
                         key=f"{spine_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "local_ip": self.client.store.get(
                         key=f"{spine_device.name.value}-{loopback_name}",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "remote_ip": self.client.store.get(
                         key=f"{leaf_device.name.value}-{loopback_name}",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "session_type": "INTERNAL",
@@ -724,17 +716,13 @@ class DCTopologyCreator(TopologyCreator):
                 else:
                     spine_bgp_data["role"] = "peering"
 
-                spine_bgp = await self.client.create(
-                    kind="ServiceBGP", data=spine_bgp_data
-                )
+                spine_bgp = await self.client.create(kind="ServiceBGP", data=spine_bgp_data)
                 batch.add(task=spine_bgp.save, allow_upsert=True, node=spine_bgp)
 
         # Create leaf-to-spine sessions (RR clients to servers)
         for leaf_device in leaf_devices:
             for spine_device in spine_devices:
-                session_name = (
-                    f"{leaf_device.name.value}-{spine_device.name.value}-EVPN".upper()
-                )
+                session_name = f"{leaf_device.name.value}-{spine_device.name.value}-EVPN".upper()
 
                 leaf_bgp_data = {
                     "name": session_name,
@@ -744,17 +732,23 @@ class DCTopologyCreator(TopologyCreator):
                     "remote_as": asn_id,
                     "router_id": self.client.store.get(
                         key=f"{leaf_device.name.value}-loopback0",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "local_ip": self.client.store.get(
                         key=f"{leaf_device.name.value}-{loopback_name}",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "remote_ip": self.client.store.get(
                         key=f"{spine_device.name.value}-{loopback_name}",
-                        kind=InterfaceVirtual, branch=self.branch)
+                        kind=InterfaceVirtual,
+                        branch=self.branch,
+                    )
                     .ip_addresses[0]
                     .id,
                     "session_type": "INTERNAL",
@@ -766,16 +760,12 @@ class DCTopologyCreator(TopologyCreator):
                 else:
                     leaf_bgp_data["role"] = "peering"
 
-                leaf_bgp = await self.client.create(
-                    kind="ServiceBGP", data=leaf_bgp_data
-                )
+                leaf_bgp = await self.client.create(kind="ServiceBGP", data=leaf_bgp_data)
                 batch.add(task=leaf_bgp.save, allow_upsert=True, node=leaf_bgp)
 
         # Execute the batch
         async for node, _ in batch.execute():
-            self.log.info(
-                f"- Created [{node.get_kind()}] {node.name.value} (iBGP EVPN overlay)"
-            )
+            self.log.info(f"- Created [{node.get_kind()}] {node.name.value} (iBGP EVPN overlay)")
 
     # ============================================================================
     # IP Addressing - Loopback Interfaces
@@ -799,19 +789,13 @@ class DCTopologyCreator(TopologyCreator):
         This separation allows for independent scaling and troubleshooting of
         underlay vs overlay routing.
         """
-        self.log.info(
-            "Creating dual loopback interfaces: loopback0 (underlay) and loopback1 (VTEP)"
-        )
+        self.log.info("Creating dual loopback interfaces: loopback0 (underlay) and loopback1 (VTEP)")
 
         # Create loopback0 for underlay routing using standard loopback pool and role
-        await self.create_loopback(
-            "loopback0", "loopback_ip_pool", "loopback", "Underlay"
-        )
+        await self.create_loopback("loopback0", "loopback_ip_pool", "loopback", "Underlay")
 
         # Create loopback1 for VTEP/overlay using VTEP pool and role
-        await self.create_loopback(
-            "loopback1", "loopback-vtep_ip_pool", "loopback-vtep", "VTEP"
-        )
+        await self.create_loopback("loopback1", "loopback-vtep_ip_pool", "loopback-vtep", "VTEP")
 
 
 # ==============================================================================
@@ -856,16 +840,12 @@ class DCTopologyGenerator(InfrahubGenerator):
         else:
             scenario = "ospf"  # Default fallback
 
-        self.logger.info(
-            f"Using {scenario} scenario for topology generation (unnumbered P2P only)"
-        )
+        self.logger.info(f"Using {scenario} scenario for topology generation (unnumbered P2P only)")
 
         # ========================================
         # Phase 1: Physical Infrastructure
         # ========================================
-        network_creator = DCTopologyCreator(
-            client=self.client, log=self.logger, branch=self.branch, data=data
-        )
+        network_creator = DCTopologyCreator(client=self.client, log=self.logger, branch=self.branch, data=data)
         # Load existing devices, platforms, templates, etc.
         await network_creator.load_data()
 

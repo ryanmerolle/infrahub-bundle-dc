@@ -96,7 +96,9 @@ def display_progress(message: str, progress: float) -> None:
 
 
 def format_datacenter_table(
-    datacenters: List[Dict[str, Any]], base_url: str = "http://localhost:8000", branch: str = "main"
+    datacenters: List[Dict[str, Any]],
+    base_url: str = "http://localhost:8000",
+    branch: str = "main",
 ) -> pd.DataFrame:
     """Format datacenter data as a pandas DataFrame for table display.
 
@@ -113,9 +115,7 @@ def format_datacenter_table(
             Description, Strategy, Design, Link.
     """
     if not datacenters:
-        return pd.DataFrame(
-            columns=["Name", "Location", "Description", "Strategy", "Design", "Link"]
-        )
+        return pd.DataFrame(columns=["Name", "Location", "Description", "Strategy", "Design", "Link"])
 
     formatted_data = []
     for dc in datacenters:
@@ -132,9 +132,7 @@ def format_datacenter_table(
 
         # Design is also a relationship (node)
         design_node = dc.get("design", {}).get("node", {})
-        design = (
-            design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
-        )
+        design = design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
 
         # Construct Infrahub UI link
         link = f"{base_url}/objects/TopologyDataCenter/{dc_id}?branch={branch}" if dc_id else "N/A"
@@ -231,13 +229,13 @@ def get_role_legend() -> Dict[str, str]:
         Colors match the DcimDevice role attribute in schemas/base/dcim.yml
     """
     return {
-        "Leaf": "#e6e6fa",           # Lavender
-        "Spine": "#aeeeee",          # Pale cyan
-        "Border Leaf": "#dda0dd",    # Plum
-        "Console": "#e8e7ad",        # Pale yellow
-        "OOB": "#e8e7ed",            # Very pale lavender
-        "Edge": "#bf7fbf",           # Medium purple
-        "Firewall": "#6a5acd",       # Slate blue (dc_firewall and edge_firewall)
+        "Leaf": "#e6e6fa",  # Lavender
+        "Spine": "#aeeeee",  # Pale cyan
+        "Border Leaf": "#dda0dd",  # Plum
+        "Console": "#e8e7ad",  # Pale yellow
+        "OOB": "#e8e7ed",  # Very pale lavender
+        "Edge": "#bf7fbf",  # Medium purple
+        "Firewall": "#6a5acd",  # Slate blue (dc_firewall and edge_firewall)
         "Load Balancer": "#38e7fb",  # Cyan
     }
 
@@ -254,4 +252,4 @@ def truncate_device_name(name: str, max_length: int = 15) -> str:
     """
     if len(name) <= max_length:
         return name
-    return name[:max_length - 3] + "..."
+    return name[: max_length - 3] + "..."

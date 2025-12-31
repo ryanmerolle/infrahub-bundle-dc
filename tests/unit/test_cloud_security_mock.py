@@ -85,9 +85,7 @@ spec:
 """,
     )
     @patch("pathlib.Path.exists")
-    def test_manufacturers_bootstrap_content(
-        self, mock_exists: Mock, mock_file: Mock
-    ) -> None:
+    def test_manufacturers_bootstrap_content(self, mock_exists: Mock, mock_file: Mock) -> None:
         """Test manufacturers bootstrap contains expected vendors."""
         import yaml
 
@@ -124,9 +122,7 @@ spec:
 """,
     )
     @patch("pathlib.Path.exists")
-    def test_device_types_bootstrap_content(
-        self, mock_exists: Mock, mock_file: Mock
-    ) -> None:
+    def test_device_types_bootstrap_content(self, mock_exists: Mock, mock_file: Mock) -> None:
         """Test device types bootstrap contains cloud security types."""
         import yaml
 
@@ -190,9 +186,7 @@ spec:
         devices = content["spec"]["data"]
 
         # Find Zscaler devices
-        zscaler_devices = [
-            dev for dev in devices if "zscaler" in dev.get("name", "").lower()
-        ]
+        zscaler_devices = [dev for dev in devices if "zscaler" in dev.get("name", "").lower()]
 
         assert len(zscaler_devices) > 0
 
@@ -349,9 +343,7 @@ menu:
 
         # Verify all components are defined
         for component, content in components.items():
-            assert content is not None and len(content) > 0, (
-                f"Component {component} should be properly defined"
-            )
+            assert content is not None and len(content) > 0, f"Component {component} should be properly defined"
 
         # Verify Zscaler-specific implementation
         assert "Zscaler" in components["bootstrap"]

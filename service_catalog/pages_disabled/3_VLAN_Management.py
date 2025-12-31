@@ -4,10 +4,10 @@ This page provides a form-based interface for modifying VLAN assignments
 on customer-facing ports of leaf switches.
 """
 
-import streamlit as st
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import streamlit as st
 from utils import (
     INFRAHUB_ADDRESS,
     INFRAHUB_API_TOKEN,
@@ -24,7 +24,6 @@ from utils.api import (
     InfrahubGraphQLError,
     InfrahubHTTPError,
 )
-
 
 # Configure page layout and title
 st.set_page_config(
@@ -58,7 +57,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
         "building_id": None,
         "pod_id": None,
         "rack_id": None,
-        "device_id": None
+        "device_id": None,
     }
 
     st.markdown("### 📍 Location Selection")
@@ -69,7 +68,11 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
         with st.spinner("Loading buildings..."):
             try:
                 st.session_state[cache_key] = client.get_location_buildings("main")
-            except (InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError) as e:
+            except (
+                InfrahubConnectionError,
+                InfrahubHTTPError,
+                InfrahubGraphQLError,
+            ) as e:
                 display_error("Failed to load buildings", str(e))
                 return selections
             except Exception as e:
@@ -152,11 +155,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
             # Device selector
             with st.spinner("Loading devices..."):
                 try:
-                    devices = client.get_devices_by_location(
-                        pod_id,
-                        selections["rack_id"],
-                        "main"
-                    )
+                    devices = client.get_devices_by_location(pod_id, selections["rack_id"], "main")
                 except (InfrahubAPIError, InfrahubConnectionError) as e:
                     display_error("Failed to load devices", str(e))
                     return selections
@@ -181,11 +180,7 @@ def render_location_selectors(client: InfrahubClient) -> Dict[str, Optional[str]
     return selections
 
 
-def render_interface_selector(
-    client: InfrahubClient,
-    device_id: str,
-    device_name: str
-) -> Optional[Dict[str, Any]]:
+def render_interface_selector(client: InfrahubClient, device_id: str, device_name: str) -> Optional[Dict[str, Any]]:
     """Render interface dropdown filtered to customer interfaces.
 
     Args:
@@ -205,11 +200,7 @@ def render_interface_selector(
 
     with st.spinner("Loading interfaces..."):
         try:
-            interfaces = client.get_interfaces_by_device(
-                device_id,
-                role_filter="Customer",
-                branch="main"
-            )
+            interfaces = client.get_interfaces_by_device(device_id, role_filter="Customer", branch="main")
         except (InfrahubAPIError, InfrahubConnectionError) as e:
             display_error("Failed to load interfaces", str(e))
             return None
@@ -229,7 +220,7 @@ def render_interface_selector(
         interface_map[display_text] = {
             "id": iface.get("id"),
             "name": name,
-            "description": desc
+            "description": desc,
         }
 
     selected_interface_display = st.selectbox(
@@ -245,10 +236,7 @@ def render_interface_selector(
     return None
 
 
-def render_current_vlans(
-    client: InfrahubClient,
-    interface_id: str
-) -> None:
+def render_current_vlans(client: InfrahubClient, interface_id: str) -> None:
     """Display current VLAN assignments for the interface.
 
     Args:
@@ -295,7 +283,11 @@ def render_vlan_selector(client: InfrahubClient) -> Optional[Dict[str, Any]]:
         with st.spinner("Loading VLANs..."):
             try:
                 st.session_state[cache_key] = client.get_all_vlans("main")
-            except (InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError) as e:
+            except (
+                InfrahubConnectionError,
+                InfrahubHTTPError,
+                InfrahubGraphQLError,
+            ) as e:
                 display_error("Failed to load VLANs", str(e))
                 return None
             except Exception as e:
@@ -320,7 +312,7 @@ def render_vlan_selector(client: InfrahubClient) -> Optional[Dict[str, Any]]:
             vlan_map[display_text] = {
                 "id": vlan.get("id"),
                 "vlan_id": vlan_id,
-                "name": vlan_name
+                "name": vlan_name,
             }
 
     if not vlan_options:
@@ -346,7 +338,7 @@ def execute_vlan_change_workflow(
     interface_name: str,
     interface_id: str,
     vlan_id: str,
-    vlan_name: str
+    vlan_name: str,
 ) -> None:
     """Execute the complete VLAN change workflow.
 
@@ -378,11 +370,7 @@ def execute_vlan_change_workflow(
         # Step 2: Assign VLAN
         with st.spinner("Assigning VLAN..."):
             display_progress("Assigning VLAN to interface", 0.67)
-            client.assign_vlan_to_interface(
-                interface_id,
-                vlan_id,
-                branch_name
-            )
+            client.assign_vlan_to_interface(interface_id, vlan_id, branch_name)
             st.success(f"✅ {vlan_name} assigned to {interface_name}")
 
         # Step 3: Create proposed change
@@ -391,7 +379,7 @@ def execute_vlan_change_workflow(
             pc = client.create_proposed_change(
                 branch=branch_name,
                 name=f"VLAN Change: {device_name} {interface_name}",
-                description=f"Assign {vlan_name} to {interface_name} on {device_name}"
+                description=f"Assign {vlan_name} to {interface_name} on {device_name}",
             )
 
             # Generate URL
@@ -409,13 +397,13 @@ def execute_vlan_change_workflow(
             display_error(
                 "VLAN assignment failed",
                 f"{str(e)}\n\nBranch '{branch_name}' was created but assignment failed. "
-                f"You can manually complete the assignment in Infrahub."
+                f"You can manually complete the assignment in Infrahub.",
             )
         elif "proposed" in error_msg or "change" in error_msg:
             display_error(
                 "Proposed change creation failed",
                 f"{str(e)}\n\nVLAN was assigned in branch '{branch_name}'. "
-                f"Please create the proposed change manually in Infrahub."
+                f"Please create the proposed change manually in Infrahub.",
             )
         else:
             display_error("Workflow failed", str(e))
@@ -435,31 +423,29 @@ def main() -> None:
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Page title
     st.title("VLAN Management")
-    st.markdown(
-        "Modify VLAN assignments on customer-facing ports of leaf switches."
-    )
+    st.markdown("Modify VLAN assignments on customer-facing ports of leaf switches.")
 
     # Progress indicator in sidebar
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📋 Form Progress")
-    
+
     # Initialize progress tracking
     progress_steps = {
         "Location": False,
         "Device": False,
         "Interface": False,
-        "VLAN": False
+        "VLAN": False,
     }
 
     # Render location selectors
     st.markdown("---")
     location_selections = render_location_selectors(client)
-    
+
     # Update progress
     if location_selections.get("building_id"):
         progress_steps["Location"] = True
@@ -494,12 +480,12 @@ def main() -> None:
             progress_steps["Interface"] = True
 
             st.markdown("---")
-            
+
             # Display current VLANs
             render_current_vlans(client, interface_id)
 
             st.markdown("---")
-            
+
             # Render VLAN selector
             vlan_info = render_vlan_selector(client)
 
@@ -509,13 +495,13 @@ def main() -> None:
                 vlan_display_name = f"VLAN {vlan_info['vlan_id']} - {vlan_info['name']}"
 
                 st.markdown("---")
-                
+
                 # Submit button
                 submit_button = st.button(
                     "Submit VLAN Change",
                     type="primary",
                     help="Create a branch and apply the VLAN change",
-                    use_container_width=True
+                    use_container_width=True,
                 )
 
                 if submit_button:
@@ -526,7 +512,7 @@ def main() -> None:
                         interface_name,
                         interface_id,
                         vlan_id,
-                        vlan_display_name
+                        vlan_display_name,
                     )
             else:
                 st.info("👆 Select a VLAN above to continue.")
@@ -547,10 +533,7 @@ def main() -> None:
 
     # Footer
     st.markdown("---")
-    st.markdown(
-        f"Connected to Infrahub at `{st.session_state.infrahub_url}` | "
-        f"Branch: `main`"
-    )
+    st.markdown(f"Connected to Infrahub at `{st.session_state.infrahub_url}` | Branch: `main`")
 
 
 if __name__ == "__main__":

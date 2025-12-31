@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st  # type: ignore[import-untyped]
 import yaml
-
 from utils import (
     DEFAULT_BRANCH,
     GENERATOR_WAIT_TIME,
@@ -215,19 +214,14 @@ def wait_for_generator(duration: int = 60) -> None:
         percentage = int(progress * 100)
 
         # Update progress bar with text
-        progress_bar.progress(
-            progress,
-            text=f"Generator running... {percentage}% complete"
-        )
+        progress_bar.progress(progress, text=f"Generator running... {percentage}% complete")
 
         # Update status text
         remaining = duration - i
         elapsed = i
 
         # Show time information with better formatting
-        time_display.markdown(
-            f"**Time:** {elapsed}s elapsed / {remaining}s remaining ({duration}s total)"
-        )
+        time_display.markdown(f"**Time:** {elapsed}s elapsed / {remaining}s remaining ({duration}s total)")
 
         # Wait 1 second (except on last iteration)
         if i < duration:
@@ -277,7 +271,7 @@ def render_progress_tracker() -> None:
         "Creating datacenter",
         "Waiting for generator",
         "Creating proposed change",
-        "Complete"
+        "Complete",
     ]
 
     progress_md = "### Progress\n\n"
@@ -351,7 +345,8 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
             # Step 4: Create proposed change
             with st.status("Creating Proposed Change...", expanded=True) as status:
                 pc_name = f"Add Data Center: {dc_name}"
-                pc_description = f"Proposed change to add new data center {dc_name} in {form_data.get('location_name', form_data['location'])}"
+                location = form_data.get("location_name", form_data["location"])
+                pc_description = f"Proposed change to add new data center {dc_name} in {location}"
                 st.write(f"Creating Proposed Change: {pc_name}")
                 pc = client.create_proposed_change(branch_name, pc_name, pc_description)
                 pc_id = pc["id"]
@@ -375,12 +370,17 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
             Your data center has been created in branch `{branch_name}` and a Proposed Change has been created.
 
             **Proposed Change URL:**
-            [{state['pc_url']}]({state['pc_url']})
+            [{state["pc_url"]}]({state["pc_url"]})
 
             Click the link above to review and merge your changes in Infrahub.
             """)
 
-    except (InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError, InfrahubAPIError) as e:
+    except (
+        InfrahubConnectionError,
+        InfrahubHTTPError,
+        InfrahubGraphQLError,
+        InfrahubAPIError,
+    ) as e:
         state["error"] = str(e)
         state["active"] = False
 
@@ -389,14 +389,14 @@ def execute_dc_creation_step(client: InfrahubClient) -> None:
         elif step == 2:
             display_error(
                 "Failed to create datacenter",
-                f"The branch '{branch_name}' was created but the datacenter could not be created.\n\n{str(e)}"
+                f"The branch '{branch_name}' was created but the datacenter could not be created.\n\n{str(e)}",
             )
         elif step == 4:
             display_error(
                 "Failed to create Proposed Change",
                 f"The datacenter '{dc_name}' was created successfully in branch '{branch_name}', "
                 f"but the Proposed Change could not be created.\n\n{str(e)}\n\n"
-                f"You can manually create a Proposed Change for branch '{branch_name}' in the Infrahub UI."
+                f"You can manually create a Proposed Change for branch '{branch_name}' in the Infrahub UI.",
             )
             st.warning(
                 f"⚠️ Data Center '{dc_name}' was created in branch '{branch_name}', "
@@ -434,7 +434,7 @@ def main() -> None:
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Fetch locations (cache in session state)
@@ -578,10 +578,7 @@ def main() -> None:
 
             # Prepare location options from fetched locations
             location_names = [loc.get("name", {}).get("value") for loc in st.session_state.locations]
-            location_map = {
-                loc.get("name", {}).get("value"): loc.get("id")
-                for loc in st.session_state.locations
-            }
+            location_map = {loc.get("name", {}).get("value"): loc.get("id") for loc in st.session_state.locations}
 
             # Pre-select location from template if available
             default_location = template_values.get("location", "") if template_values else ""
@@ -613,10 +610,7 @@ def main() -> None:
 
             # Prepare provider options
             provider_names = [p.get("name", {}).get("value") for p in st.session_state.providers]
-            provider_map = {
-                p.get("name", {}).get("value"): p.get("id")
-                for p in st.session_state.providers
-            }
+            provider_map = {p.get("name", {}).get("value"): p.get("id") for p in st.session_state.providers}
 
             # Pre-select provider from template if available
             default_provider = template_values.get("provider", "") if template_values else ""
@@ -647,10 +641,7 @@ def main() -> None:
 
             # Prepare design options
             design_names = [d.get("name", {}).get("value") for d in st.session_state.designs]
-            design_map = {
-                d.get("name", {}).get("value"): d.get("id")
-                for d in st.session_state.designs
-            }
+            design_map = {d.get("name", {}).get("value"): d.get("id") for d in st.session_state.designs}
 
             # Pre-select design from template if available
             default_design = template_values.get("design", "") if template_values else ""
@@ -671,7 +662,10 @@ def main() -> None:
             default_emulation = template_values.get("emulation", True) if template_values else True
 
             emulation = st.checkbox(
-                "Emulation", value=default_emulation, help="Enable emulation mode", disabled=dc_creation_active
+                "Emulation",
+                value=default_emulation,
+                help="Enable emulation mode",
+                disabled=dc_creation_active,
             )
 
         # Subnet configuration
@@ -763,7 +757,10 @@ def main() -> None:
         # Submit button
         st.markdown("---")
         submitted = st.form_submit_button(
-            "Create Data Center", type="primary", use_container_width=True, disabled=dc_creation_active
+            "Create Data Center",
+            type="primary",
+            use_container_width=True,
+            disabled=dc_creation_active,
         )
 
         if submitted:

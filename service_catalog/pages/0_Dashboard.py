@@ -4,7 +4,6 @@ This page displays Data Centers with associated Network Segments and branch sele
 """
 
 import streamlit as st  # type: ignore[import-untyped]
-
 from utils import (
     DEFAULT_BRANCH,
     INFRAHUB_ADDRESS,
@@ -13,8 +12,7 @@ from utils import (
     InfrahubClient,
     display_error,
 )
-from utils.api import InfrahubConnectionError, InfrahubHTTPError, InfrahubGraphQLError
-
+from utils.api import InfrahubConnectionError, InfrahubGraphQLError, InfrahubHTTPError
 
 # Initialize session state
 if "selected_branch" not in st.session_state:
@@ -31,14 +29,12 @@ def main() -> None:
     client = InfrahubClient(
         st.session_state.infrahub_url,
         api_token=INFRAHUB_API_TOKEN or None,
-        ui_url=INFRAHUB_UI_URL
+        ui_url=INFRAHUB_UI_URL,
     )
 
     # Page title
     st.title("Infrahub Service Catalog")
-    st.markdown(
-        "Welcome to the Infrahub Service Catalog. View and manage your infrastructure resources."
-    )
+    st.markdown("Welcome to the Infrahub Service Catalog. View and manage your infrastructure resources.")
 
     # Branch selector in sidebar
     st.sidebar.markdown("---")
@@ -61,9 +57,7 @@ def main() -> None:
                 default_index = branch_names.index(st.session_state.selected_branch)
             except ValueError:
                 default_index = 0
-                st.session_state.selected_branch = (
-                    branch_names[0] if branch_names else DEFAULT_BRANCH
-                )
+                st.session_state.selected_branch = branch_names[0] if branch_names else DEFAULT_BRANCH
 
             # Display branch selector dropdown
             selected_branch = st.sidebar.selectbox(
@@ -85,9 +79,7 @@ def main() -> None:
         display_error("Unable to connect to Infrahub", str(e))
         st.stop()
     except InfrahubHTTPError as e:
-        display_error(
-            f"HTTP Error {e.status_code}", f"{str(e)}\n\nResponse: {e.response_text}"
-        )
+        display_error(f"HTTP Error {e.status_code}", f"{str(e)}\n\nResponse: {e.response_text}")
         st.stop()
     except InfrahubGraphQLError as e:
         display_error("GraphQL Error", str(e))
@@ -106,12 +98,8 @@ def main() -> None:
     st.header("Data Centers")
 
     try:
-        with st.spinner(
-            f"Loading data centers from branch '{st.session_state.selected_branch}'..."
-        ):
-            datacenters = client.get_objects(
-                "TopologyDataCenter", st.session_state.selected_branch
-            )
+        with st.spinner(f"Loading data centers from branch '{st.session_state.selected_branch}'..."):
+            datacenters = client.get_objects("TopologyDataCenter", st.session_state.selected_branch)
 
         if datacenters:
             # Display each datacenter with its network segments
@@ -124,7 +112,9 @@ def main() -> None:
                 strategy = dc.get("strategy", {}).get("value", "N/A")
                 design_node = dc.get("design", {}).get("node", {})
                 design = design_node.get("name", {}).get("value", "N/A") if design_node else "N/A"
-                dc_link = f"{INFRAHUB_UI_URL}/objects/TopologyDataCenter/{dc_id}?branch={st.session_state.selected_branch}"
+                dc_link = (
+                    f"{INFRAHUB_UI_URL}/objects/TopologyDataCenter/{dc_id}?branch={st.session_state.selected_branch}"
+                )
 
                 # Create expander for each datacenter
                 with st.expander(f"**{dc_name}** - {location}", expanded=True):
@@ -141,23 +131,23 @@ def main() -> None:
                         st.link_button("View in Infrahub", dc_link)
 
                     # Fetch and display network segments for this datacenter
-                    segments = client.get_network_segments_by_deployment(
-                        dc_id, st.session_state.selected_branch
-                    )
+                    segments = client.get_network_segments_by_deployment(dc_id, st.session_state.selected_branch)
 
                     if segments:
                         st.markdown("---")
                         st.markdown("**Network Segments:**")
                         segment_data = []
                         for seg in segments:
-                            segment_data.append({
-                                "Customer": seg.get("customer_name", {}).get("value", "N/A"),
-                                "Environment": seg.get("environment", {}).get("value", "N/A"),
-                                "Type": seg.get("segment_type", {}).get("value", "N/A"),
-                                "VLAN ID": seg.get("vlan_id", {}).get("value", "N/A"),
-                                "Isolation": seg.get("tenant_isolation", {}).get("value", "N/A"),
-                                "Owner": seg.get("owner", {}).get("value", "N/A"),
-                            })
+                            segment_data.append(
+                                {
+                                    "Customer": seg.get("customer_name", {}).get("value", "N/A"),
+                                    "Environment": seg.get("environment", {}).get("value", "N/A"),
+                                    "Type": seg.get("segment_type", {}).get("value", "N/A"),
+                                    "VLAN ID": seg.get("vlan_id", {}).get("value", "N/A"),
+                                    "Isolation": seg.get("tenant_isolation", {}).get("value", "N/A"),
+                                    "Owner": seg.get("owner", {}).get("value", "N/A"),
+                                }
+                            )
                         st.dataframe(
                             segment_data,
                             use_container_width=True,

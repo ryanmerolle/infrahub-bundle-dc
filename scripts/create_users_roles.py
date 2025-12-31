@@ -180,9 +180,7 @@ from infrahub_sdk import InfrahubClient
 # ============================================================================
 
 
-async def find_permission_by_identifier(
-    client: InfrahubClient, identifier: str
-) -> str | None:
+async def find_permission_by_identifier(client: InfrahubClient, identifier: str) -> str | None:
     """
     Find a permission by its identifier string and return its UUID.
 
@@ -277,9 +275,13 @@ async def find_permission_by_identifier(
         decision_value = decision_map.get(decision_str, 6)  # Convert to int
 
         # Build GraphQL query to find object permission by namespace, name, action, and decision
+        filters = (
+            f'namespace__value: "{namespace}", name__value: "{name}", '
+            f'action__value: "{action}", decision__value: {decision_value}'
+        )
         query = f"""
         query {{
-          {kind}(namespace__value: "{namespace}", name__value: "{name}", action__value: "{action}", decision__value: {decision_value}) {{
+          {kind}({filters}) {{
             edges {{
               node {{
                 id
@@ -358,11 +360,26 @@ async def ensure_permissions_exist(client: InfrahubClient) -> None:
         # namespace: "*" = all namespaces (Dcim, Ipam, Location, etc.)
         # name: "*" = all object types (Device, Interface, IPAddress, etc.)
         # decision: 6 = allow_all, 1 = deny
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "view", "decision": 6}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "create", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "update", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "delete", "decision": 1}),
-        ("CoreObjectPermission", {"namespace": "*", "name": "*", "action": "any", "decision": 6}),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "view", "decision": 6},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "create", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "update", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "delete", "decision": 1},
+        ),
+        (
+            "CoreObjectPermission",
+            {"namespace": "*", "name": "*", "action": "any", "decision": 6},
+        ),
         # ====================================================================
         # Global Permissions (control system-wide capabilities)
         # ====================================================================
@@ -535,9 +552,7 @@ async def create_roles(client: InfrahubClient) -> dict[str, str]:
 # ============================================================================
 
 
-async def create_groups(
-    client: InfrahubClient, role_ids: dict[str, str]
-) -> dict[str, str]:
+async def create_groups(client: InfrahubClient, role_ids: dict[str, str]) -> dict[str, str]:
     """
     Create groups and return a mapping of group names to UUIDs.
 

@@ -11,80 +11,54 @@ scope:
   - heading.h6
 match: $sentence
 exceptions:
-  - Alpha
-  - Ansible
+  - AGENTS.md
   - API
-  - Arista AVD
-  - Attributes
-  - AWS S3
-  - Beta
+  - ASN
   - BGP
-  - CA certificates
-  - CI
+  - Build Commands
   - CI/CD
-  - CLI
-  - Codespaces
+  - Code Style Guidelines
+  - Colo
+  - Colocation
+  - Common Markdownlint Rules
+  - Common Pitfalls
+  - Common Vale Issues
   - Containerlab
-  - CoreArtifactTarget
-  - CoreRepository
-  - CoreGroup
+  - Core Infrahub
+  - Data Center
   - DC
-  - DC-2
-  - DC-3
-  - Docker Compose
-  - E2E
-  - Example
-  - Generics
-  - Git
+  - Diataxis
+  - Directory Structure
+  - DNS
+  - Docusaurus
+  - Documentation Site
+  - Documentation Writing Guidelines
+  - Enterprise
+  - For How-to Guides
+  - For Topics/Explanations
   - GitHub
-  - GitHub Codespaces
-  - GitLab
-  - GitPod
   - GraphQL
-  - GraphQLQuery
-  - include_in_menu & menu_placement
-  - Helm
-  - High Availability
-  - Human Friendly Identifier
   - Infrahub
-  - infrahubctl
-  - IPHost
+  - Integration with CI/CD
   - IP
-  - IPAM
-  - IPNetwork
-  - IP Fabric
-  - JavaScript
-  - JetStream
   - Jinja
-  - Jinja2
-  - JWT
-  - L2
-  - L3
-  - Layer 2
-  - Layer 3
-  - Namespace
-  - NATS
-  - Node
-  - OAuth2
-  - OIDC
-  - Open ID Connect
-  - OpsMill
-  - Option A
-  - Option B
+  - Key Files
+  - Linting Requirements
+  - Local Development
+  - Markdownlint
+  - MDX Content
+  - Mermaid
+  - Mermaid Diagrams
+  - Netbox
+  - OpenConfig
+  - OSPF
+  - POP
   - Pydantic
-  - Python
-  - RabbitMQ
-  - REST
-  - RFile
-  - SDK
-  - Single sign-on
-  - SSO
-  - TLS
-  - Tony Stark
-  - TransformPython
+  - Service Catalog
+  - Streamlit
+  - Switching to Enterprise
+  - Tech Stack
   - UI
-  - Using
-  - Vale
-  - VS Code
-  - VS Code extensions
-  - WebUI
+  - VLAN
+  - VLANs
+  - VXLAN

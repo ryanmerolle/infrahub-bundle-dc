@@ -81,7 +81,7 @@ vale $(find ./docs/docs -type f \( -name "*.mdx" -o -name "*.md" \))
 ### Common Vale Issues
 
 1. **Sentence case headings** - Use "Understanding the workflow" not "Understanding the Workflow"
-2. **Avoid "simple/easy"** - Use "straightforward" or "clear" instead
+2. **Minimizing words** - Avoid terms that minimize effort; use "straightforward" or rephrase
 3. **Spelling exceptions** - Add terms to `.vale/styles/spelling-exceptions.txt`
 4. **Proper nouns** - Always capitalize: Infrahub, GitHub, Streamlit
 

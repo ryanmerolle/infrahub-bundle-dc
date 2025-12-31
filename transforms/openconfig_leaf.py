@@ -69,8 +69,6 @@ class OpenConfigLeaf(InfrahubTransform):
 
                     intf_config["subinterfaces"]["subinterface"].append(subintf_config)
 
-            response_payload["openconfig-interfaces:interfaces"]["interface"].append(
-                intf_config
-            )
+            response_payload["openconfig-interfaces:interfaces"]["interface"].append(intf_config)
 
         return response_payload

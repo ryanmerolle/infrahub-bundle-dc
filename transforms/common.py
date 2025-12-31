@@ -84,11 +84,7 @@ def get_bgp_profile(device_services: list[dict[str, Any]]) -> list[dict[str, Any
     for sessions in peer_groups.values():
         if not sessions:
             continue
-        base_settings = {
-            k: v
-            for k, v in sessions[0].items()
-            if k not in unique_keys and k != "peer_group"
-        }
+        base_settings = {k: v for k, v in sessions[0].items() if k not in unique_keys and k != "peer_group"}
         for session in sessions[1:]:
             keys_to_remove = []
             for k in base_settings:
@@ -174,9 +170,7 @@ def get_loopbacks(data: list) -> dict[str, str]:
 
         # Check if this is a loopback interface by role or name
         is_loopback = (
-            role == "loopback"
-            or "loopback" in name_lower
-            or (len(name_lower) >= 2 and name_lower[:2] == "lo")
+            role == "loopback" or "loopback" in name_lower or (len(name_lower) >= 2 and name_lower[:2] == "lo")
         )
 
         if is_loopback:
@@ -211,14 +205,14 @@ def expand_interface_range(interface_name: str) -> list[str]:
         return [interface_name]
 
     bracket_content = match.group(1)[1:-1]  # Remove [ and ]
-    prefix = interface_name[:match.start()]
-    suffix = interface_name[match.end():]
+    prefix = interface_name[: match.start()]
+    suffix = interface_name[match.end() :]
 
     # Handle numeric ranges like [1-48] or [1,3,5]
     expanded = []
-    for part in bracket_content.split(','):
-        if '-' in part:
-            start, end = part.split('-')
+    for part in bracket_content.split(","):
+        if "-" in part:
+            start, end = part.split("-")
             if start.isdigit() and end.isdigit():
                 for i in range(int(start), int(end) + 1):
                     expanded.append(f"{prefix}{i}{suffix}")
@@ -305,9 +299,7 @@ def get_interfaces(data: list) -> list[dict[str, Any]]:
 
         name_to_interface[name] = iface_dict
 
-    return [
-        name_to_interface[name] for name in sorted_names if name in name_to_interface
-    ]
+    return [name_to_interface[name] for name in sorted_names if name in name_to_interface]
 
 
 def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
@@ -334,11 +326,7 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
             iface_copy["ip_address"] = ""
 
         # Categorize by role
-        if (
-            role == "loopback"
-            or "loopback" in name_lower
-            or name_lower.startswith("lo")
-        ):
+        if role == "loopback" or "loopback" in name_lower or name_lower.startswith("lo"):
             roles["loopback"].append(iface_copy)
         elif role in ("uplink", "spine"):
             roles["uplink"].append(iface_copy)
@@ -353,9 +341,7 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
 
     # Create aggregate lists
     roles["all_downlink"] = roles["downlink"] + roles["customer"]
-    roles["all_physical"] = (
-        roles["uplink"] + roles["downlink"] + roles["customer"] + roles["other"]
-    )
+    roles["all_physical"] = roles["uplink"] + roles["downlink"] + roles["customer"] + roles["other"]
 
     # Re-sort aggregate lists to maintain interface name order
     if roles["all_downlink"]:
@@ -366,9 +352,7 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
             # If netutils can't parse, fall back to alphabetical sorting
             sorted_names = sorted(interface_names)
         name_to_interface = {iface["name"]: iface for iface in roles["all_downlink"]}
-        roles["all_downlink"] = [
-            name_to_interface[name] for name in sorted_names if name in name_to_interface
-        ]
+        roles["all_downlink"] = [name_to_interface[name] for name in sorted_names if name in name_to_interface]
 
     if roles["all_physical"]:
         interface_names = [iface["name"] for iface in roles["all_physical"]]
@@ -378,8 +362,6 @@ def get_interface_roles(data: list) -> dict[str, list[dict[str, Any]]]:
             # If netutils can't parse, fall back to alphabetical sorting
             sorted_names = sorted(interface_names)
         name_to_interface = {iface["name"]: iface for iface in roles["all_physical"]}
-        roles["all_physical"] = [
-            name_to_interface[name] for name in sorted_names if name in name_to_interface
-        ]
+        roles["all_physical"] = [name_to_interface[name] for name in sorted_names if name in name_to_interface]
 
     return dict(roles)
