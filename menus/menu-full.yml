@@ -10,6 +10,62 @@ spec:
       icon: "mdi:book-open-variant"
       kind: DocsDocs
 
+    # ===================== LOCATION =====================
+    - namespace: Location
+      name: Generic
+      label: Locations
+      kind: LocationGeneric
+      icon: "mdi:map-marker"
+      children:
+        data:
+          - namespace: Location
+            name: Location
+            label: All Locations
+            kind: LocationGeneric
+            icon: "mdi:map-marker"
+
+          - namespace: Location
+            name: Region
+            label: Regions
+            kind: LocationRegion
+            icon: "carbon:cics-region-target"
+
+          - namespace: Location
+            name: Country
+            label: Countries
+            kind: LocationCountry
+            icon: "gis:search-country"
+
+          - namespace: Location
+            name: Metro
+            label: Metros
+            kind: LocationMetro
+            icon: "healthicons:city"
+
+          - namespace: Location
+            name: Building
+            label: Buildings
+            kind: LocationBuilding
+            icon: "ri:building-line"
+
+          - namespace: Location
+            name: Pod
+            label: Pods
+            kind: LocationPod
+            icon: "mdi:home-floor-0"
+
+          - namespace: Location
+            name: Row
+            label: Rows
+            kind: LocationRow
+            icon: "game-icons:cage"
+
+          - namespace: Location
+            name: Rack
+            label: Racks
+            kind: LocationRack
+            icon: "clarity:rack-server-line"
+
     # ===================== DEVICE MANAGEMENT =====================
     - namespace: Dcim
       name: DeviceManagementMenu
@@ -331,14 +387,7 @@ spec:
                         kind: SecuritySchedule
                         icon: "mdi:calendar-clock"
 
-    # ===================== LOCATION =====================
-    - namespace: Location
-      name: Generic
-      label: Locations
-      kind: LocationGeneric
-      icon: "mdi:map-marker"
-
-    # ===================== TOPOLOGY & DESIGN =====================
+# ===================== TOPOLOGY & DESIGN =====================
     - namespace: Topology
       name: TopologyMenu
       label: Network Topologies
