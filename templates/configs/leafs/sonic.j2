@@ -25,9 +25,9 @@
   },
   "INTERFACE": {
 {% for interface in interfaces.all_physical %}
-  {% if interface.role == 'uplink' %}
+{%     if interface.role == 'uplink' %}
     "{{ interface.name }}": {}{{ "," if not loop.last }}
-  {% endif %}
+{%     endif %}
 {% endfor %}
   },
   "BGP_NEIGHBOR": {
@@ -54,12 +54,12 @@
   },
   "OSPF_INTERFACE": {
 {% for interface in interfaces.all_physical %}
-  {% if interface.role == 'uplink' %}
+{%     if interface.role == 'uplink' %}
     "{{ interface.name }}": {
       "area": "{{ ospf.area or '0.0.0.0' }}",
       "network": "point-to-point"
     }{{ "," if not (loop.last and not loopbacks.loopback0) }}
-  {% endif %}
+{%     endif %}
 {% endfor %}
 {% if loopbacks.loopback0 %}
     "loopback0": {
