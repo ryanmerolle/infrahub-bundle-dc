@@ -1,3 +1,5 @@
+{% set default_ospf_area = '0.0.0.0' %}
+{% set default_router_id = loopbacks.loopback0 %}
 !
 ! Arista EOS VXLAN/EVPN Leaf Configuration
 ! Device: {{ hostname }}
@@ -19,7 +21,7 @@ interface {{ loopback_name }}
 {%-     if loopback_name == 'loopback0' %}
    description {{ hostname }} Underlay Loopback Interface
    ip address {{ loopback_ip }}/32
-   ospf area {{ ospf.area or "0.0.0.0" }}
+   ospf area {{ ospf.area or default_ospf_area }}
 {%-     elif loopback_name == 'loopback1' %}
    description {{ hostname }} VTEP Loopback Interface
    ip address {{ loopback_ip }}/32
@@ -27,12 +29,12 @@ interface {{ loopback_name }}
 {%-     else %}
    description {{ hostname }} {{ loopback_name }} Interface
    ip address {{ loopback_ip }}/32
-   ospf area {{ ospf.area or "0.0.0.0" }}
+   ospf area {{ ospf.area or default_ospf_area }}
 {%-     endif %}
 {%- endfor %}
 ! Configure OSPF
 router ospf {{ ospf.process_id or 1 }}
-   router-id {{ ospf.router_id or loopbacks.loopback0 }}
+   router-id {{ ospf.router_id or default_router_id }}
    passive-interface default
    no passive-interface Ethernet1
    no passive-interface Ethernet2
@@ -53,7 +55,7 @@ interface {{ interface.name }}
    mtu {{ interface.mtu or 9214 }}
    no switchport
    ip unnumbered Loopback0
-   ospf area {{ ospf.area or "0.0.0.0" }}
+   ospf area {{ ospf.area or default_ospf_area }}
    ospf network point-to-point
 {%-     elif interface.vlans %}
 {%-         if interface.vlans | length == 1 %}
@@ -93,18 +95,19 @@ interface {{ interface.name }}
 {%- endfor %}
 ! Configure BGP
 router bgp {{ bgp.local_as }}
-   router-id {{ bgp.router_id or loopbacks.loopback0 }}
+   router-id {{ bgp.router_id or default_router_id }}
    no bgp default ipv4-unicast
    distance bgp 20 200 200
    maximum-paths 4 ecmp 64
 {# Configure BGP neighbors from enhanced transform data #}
 {%- for neighbor in bgp.neighbors %}
+{%-     set neihbor_ip = neighbor.remote_ip.split('/')[0] %}
    ! {{ neighbor.description or 'BGP Neighbor' }}
-   neighbor {{ neighbor.remote_ip.split('/')[0] }} remote-as {{ neighbor.remote_as }}
-   neighbor {{ neighbor.remote_ip.split('/')[0] }} update-source Loopback0
-   neighbor {{ neighbor.remote_ip.split('/')[0] }} description {{ neighbor.description or 'BGP Neighbor' }}
-   neighbor {{ neighbor.remote_ip.split('/')[0] }} send-community extended
-   neighbor {{ neighbor.remote_ip.split('/')[0] }} maximum-routes 0
+   neighbor {{ neihbor_ip }} remote-as {{ neighbor.remote_as }}
+   neighbor {{ neihbor_ip }} update-source Loopback0
+   neighbor {{ neihbor_ip }} description {{ neighbor.description or 'BGP Neighbor' }}
+   neighbor {{ neihbor_ip }} send-community extended
+   neighbor {{ neihbor_ip }} maximum-routes 0
 {%- endfor %}
    address-family ipv4
       redistribute connected route-map RM-CONN-2-BGP
@@ -118,7 +121,7 @@ router bgp {{ bgp.local_as }}
 {# L2VPN EVPN for VLANs #}
 {%- for vlan in vlans %}
    vlan {{ vlan.vlan_id }}
-      rd {{ bgp.router_id or loopbacks.loopback0 }}:{{ vlan.vni }}
+      rd {{ bgp.router_id or default_router_id }}:{{ vlan.vni }}
       route-target both {{ vlan.vni }}:{{ vlan.vni }}
       redistribute learned
 {%- endfor %}

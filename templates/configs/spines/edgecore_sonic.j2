@@ -1,3 +1,5 @@
+{% set default_ospf_area = '0.0.0.0' %}
+{% set default_router_id = loopbacks.loopback0 %}
 {
   "DEVICE_METADATA": {
     "localhost": {
@@ -21,7 +23,7 @@
   "BGP_NEIGHBOR": {
 {% for neighbor in bgp.neighbors %}
     "{{ neighbor.remote_ip.split('/')[0] }}": {
-      "local_addr": "{{ bgp.router_id or loopbacks.loopback0 }}",
+      "local_addr": "{{ bgp.router_id or default_router_id }}",
       "asn": "{{ neighbor.remote_as }}",
       "holdtime": "10",
       "keepalive": "3",
@@ -31,19 +33,19 @@
   },
   "BGP_GLOBALS": {
     "default": {
-      "router_id": "{{ bgp.router_id or loopbacks.loopback0 }}",
+      "router_id": "{{ bgp.router_id or default_router_id }}",
       "local_asn": "{{ bgp.local_as }}"
     }
   },
   "OSPF_ROUTER": {
     "default": {
-      "router_id": "{{ ospf.router_id or loopbacks.loopback0 }}"
+      "router_id": "{{ ospf.router_id or default_router_id }}"
     }
   },
   "OSPF_INTERFACE": {
 {% for interface in interface_roles.all_downlink %}
     "{{ interface.name }}": {
-      "area": "{{ ospf.area or '0.0.0.0' }}",
+      "area": "{{ ospf.area or default_ospf_area }}",
       "network": "point-to-point"
     }{{ "," if not loop.last }}
 {% endfor %}
@@ -51,7 +53,7 @@
 {% for interface in interface_roles.loopback %}
 {%     if interface.name == 'loopback0' %}
     "{{ interface.name }}": {
-      "area": "{{ ospf.area or '0.0.0.0' }}"
+      "area": "{{ ospf.area or default_ospf_area }}"
     }{{ "," if not loop.last }}
 {%     endif %}
 {% endfor %}
