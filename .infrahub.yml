@@ -5,6 +5,10 @@ jinja2_transforms:
     description: Template to generate a containerlab topology
     query: topology_simulator
     template_path: templates/clab_topology.j2
+  - name: topology_clab_old
+    description: Template to generate a containerlab topology
+    query: topology_simulator
+    template_path: templates/clab_topology_old.j2
 
 artifact_definitions:
   # Cisco

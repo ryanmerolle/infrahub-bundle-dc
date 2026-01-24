@@ -1,0 +1,134 @@
+{#- ============================================================================
+    Containerlab Topology Generator Template
+
+    Generates a Containerlab topology YAML file from Infrahub TopologyDeployment data.
+    Supports Arista cEOS devices with management network configuration and
+    automated link generation between devices.
+    ============================================================================ -#}
+{#- Define default container images for each device kind -#}
+{% set default_images = {
+  "arista_ceos": "registry.opsmill.io/external/ceos-image:4.29.0.2F"
+} -%}
+
+{# Iterate through all topology deployments #}
+{% for topology in data.TopologyDeployment.edges -%}
+
+
+---
+{# ============================================================================
+   Basic Topology Configuration
+   ============================================================================ #}
+name: {{ topology.node.name.value }}
+prefix: ""
+
+{# Management network configuration #}
+mgmt:
+  network: {{ topology.node.name.value | lower() }}
+  ipv4-subnet: {{ topology.node.management_subnet.node.prefix.value }}
+
+{% if topology.node.devices.edges is defined -%}
+
+topology:
+  {# ============================================================================
+     Device Kind Definitions
+     Configure base images and startup commands for each device type
+     ============================================================================ #}
+  kinds:
+    arista_ceos:
+      image: "{{ default_images.arista_ceos }}"
+      exec:
+        - sleep 10
+        - FastCli -p 15 -c 'security pki key generate rsa 4096 eAPI.key'
+        - FastCli -p 15 -c 'security pki certificate generate self-signed eAPI.crt key eAPI.key generate rsa 4096 validity 30000 parameters common-name eAPI'
+
+  {# ============================================================================
+     Node Definitions
+     Define individual device nodes with their configuration
+     ============================================================================ #}
+  nodes:
+{% for device in topology.node.devices.edges %}
+{#- Only include devices that are Arista cEOS platform #}
+{% if device.node.platform.node.containerlab_os.value == "arista_ceos" %}
+    {{ device.node.name.value }}:
+      kind: {{ device.node.platform.node.containerlab_os.value }}
+      type: {{ device.node.device_type.node.name.value }}
+{% if device.node.os_version.value %}
+      image: {{ device.node.os_version.value }}
+{% endif %}
+{% if device.node.primary_address.node.address is defined %}
+{% set mgmt_ip = device.node.primary_address.node.address.value.split('/') %}
+      mgmt-ipv4: {{ mgmt_ip[0] }}
+{% endif %}
+      startup-config: ../devices/{{ device.node.name.value }}.cfg
+{% endif %}
+{% endfor %}
+
+
+  {# ============================================================================
+     Link Definitions
+     Generate physical connections between devices from interface connectors.
+     Deduplicates bidirectional links and normalizes interface naming.
+     Uses DcimCable connected_endpoints for robust connection tracking.
+     ============================================================================ #}
+  links:
+{% set processed_endpoints = [] %}
+{#- Build a mapping of device names to their platform kinds for interface name normalization -#}
+{%- set device_kinds = {} %}
+{%- for device in topology.node.devices.edges %}
+{%- set _ = device_kinds.update({device.node.name.value: device.node.platform.node.containerlab_os.value}) %}
+{%- endfor %}
+{#- Iterate through all devices and their interfaces to find connections -#}
+{%- for device in topology.node.devices.edges %}
+{%- for interface in device.node.interfaces.edges %}
+{#- Only process interfaces with valid connectors (skip console/management) -#}
+{%- if interface.node.connector is defined and interface.node.connector.node is not none and interface.node.role.value not in ["console", "management"] %}
+{%- set cable = interface.node.connector.node %}
+{%- set source_device = device.node.name.value %}
+{%- set source_interface = interface.node.name.value %}
+{#- Build endpoint1 (source) -#}
+{%- set endpoint1 = source_device + ":" + source_interface %}
+{#- Find remote endpoint from cable's connected_endpoints -#}
+{#- Use namespace to allow variable updates inside loop (Jinja2 scoping) -#}
+{%- set ns = namespace(remote_device="", remote_interface="") %}
+{%- if cable.connected_endpoints and cable.connected_endpoints.edges %}
+{%- for endpoint in cable.connected_endpoints.edges %}
+{%- set ep_device = endpoint.node.device.node.name.value %}
+{%- set ep_interface = endpoint.node.name.value %}
+{#- Skip if this is the current interface (we want the remote one) -#}
+{%- if ep_device != source_device or ep_interface != source_interface %}
+{%- set ns.remote_device = ep_device %}
+{%- set ns.remote_interface = ep_interface %}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+{#- Only proceed if we found a remote endpoint -#}
+{%- if ns.remote_device and ns.remote_interface %}
+{#- Build endpoint2 (remote) -#}
+{%- set endpoint2 = ns.remote_device + ":" + ns.remote_interface %}
+{#- Create sorted tuple to ensure consistent ordering for deduplication -#}
+{%- set endpoint_tuple = [endpoint1, endpoint2] | sort %}
+{%- set endpoint_key = endpoint_tuple | join("|") %}
+{#- Only process each unique link once (prevents duplicates for bidirectional connections) -#}
+{%- if endpoint_key not in processed_endpoints %}
+{%- set _ = processed_endpoints.append(endpoint_key) %}
+{#- Normalize interface naming: "Ethernet" -> "eth" for containerlab -#}
+{%- set endpoint1 = endpoint1.replace("Ethernet", "eth") %}
+{%- set endpoint2 = endpoint2.replace("Ethernet", "eth") %}
+{#- Extract device names from endpoints -#}
+{%- set device1_name = endpoint1.split(":")[0] %}
+{%- set device2_name = endpoint2.split(":")[0] %}
+{#- Arista cEOS: Strip subinterface notation (e.g., "eth1/1/1" -> "eth1/1") -#}
+{%- if device_kinds.get(device1_name) == "arista_ceos" %}
+{%- set endpoint1 = endpoint1.split("/")[0] %}
+{%- endif %}
+{%- if device_kinds.get(device2_name) == "arista_ceos" %}
+{%- set endpoint2 = endpoint2.split("/")[0] %}
+{%- endif %}
+    - endpoints: ["{{ endpoint1 }}", "{{ endpoint2 }}"]
+{% endif %}
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
